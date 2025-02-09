@@ -24,10 +24,7 @@ __all__ = [
 
 A = TypeVar("A")
 S = TypeVar("S")
-S2 = TypeVar("S2")
 P1 = ParamSpec("P1")
-P2 = ParamSpec("P2")
-O = TypeVar("O")
 
 
 class _PartialTransformer(Generic[A, P1, S]):
@@ -58,10 +55,10 @@ def partial_transformer(
     func: Callable[Concatenate[A, P1], S]
 ) -> _PartialTransformer[A, P1, S]:
     """
-    This decorator allows the creation of partial transformers, which are transformers that
-    enable partial application of their arguments. This capability is particularly useful for
-    creating configurable transformer instances where some arguments are preset, enhancing
-    modularity and reusability in data processing pipelines.
+    This decorator allows the creation of partial transformers, which enable partial
+    application of their arguments. This is useful for creating configurable transformer
+    instances where some arguments are preset, enhancing modularity and reusability in
+    data processing pipelines.
 
     See Also:
         For further details on partial transformers and their applications, see
@@ -83,14 +80,13 @@ def partial_transformer(
             get_enriched_data = get_data >> enrich_with_metadata
 
     Args:
-        func: A callable with one or more arguments. The first argument is of
-            type :code:`A`. The subsequent arguments are retained for use during
-            transformer instantiation. This callable returns a value of type
-            :code:`S`.
+        func: A callable with one or more arguments. The first argument is of type
+            :code:`A`. The subsequent arguments are retained for use during transformer
+            instantiation. This callable returns a value of type :code:`S`.
 
     Returns:
-        An instance of the :code:`_PartialTransformer`, an internal class utilized within
-        Gloe that facilitates partial instantiation of transformers by the user.
+        An instance of the :code:`_PartialTransformer`, an internal class used within
+        Gloe to facilitate partial instantiation of transformers.
     """
     return _PartialTransformer(func)
 
@@ -124,10 +120,9 @@ def partial_async_transformer(
 ) -> _PartialAsyncTransformer[A, P1, S]:
     """
     This decorator enables the creation of partial asynchronous transformers, which are
-    transformers capable of partial argument application. Such functionality is invaluable
-    for crafting reusable asynchronous transformer instances where certain arguments are
-    predetermined, enhancing both modularity and reusability within asynchronous data
-    processing flows.
+    capable of partial argument application. This is useful for crafting reusable
+    asynchronous transformer instances where certain arguments are predetermined,
+    enhancing modularity and reusability within asynchronous data processing flows.
 
     See Also:
         For additional insights into partial asynchronous transformers and their practical
@@ -155,9 +150,8 @@ def partial_async_transformer(
             `S`.
 
     Returns:
-        An instance of the :code:`_PartialAsyncTransformer`, an internally managed class
-        within Gloe designed to facilitate the partial instantiation of asynchronous
-        transformers.
+        An instance of the :code:`_PartialAsyncTransformer`, an internal class used
+        within Gloe to facilitate the partial instantiation of asynchronous transformers.
     """
     return _PartialAsyncTransformer(func)
 
@@ -193,8 +187,8 @@ def transformer(func: Callable[[A], S]) -> Transformer[A, S]:
         warnings.warn(
             "Only one parameter is allowed on Transformers. "
             f"Function '{func.__name__}' has the following signature: {func_signature}. "
-            "To pass a complex data, use a complex type like named tuples, "
-            "typed dicts, dataclasses or anything else.",
+            "To pass complex data, use a complex type like named tuples, "
+            "typed dicts, dataclasses, or anything else.",
             category=RuntimeWarning,
         )
 
@@ -244,8 +238,8 @@ def async_transformer(func: Callable[[A], Awaitable[S]]) -> AsyncTransformer[A, 
         warnings.warn(
             "Only one parameter is allowed on Transformers. "
             f"Function '{func.__name__}' has the following signature: {func_signature}. "
-            "To pass a complex data, use a complex type like named tuples, "
-            "typed dicts, dataclasses or anything else.",
+            "To pass complex data, use a complex type like named tuples, "
+            "typed dicts, dataclasses, or anything else.",
             category=RuntimeWarning,
         )
 
