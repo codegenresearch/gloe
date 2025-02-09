@@ -24,10 +24,7 @@ __all__ = [
 
 A = TypeVar("A")
 S = TypeVar("S")
-S2 = TypeVar("S2")
 P1 = ParamSpec("P1")
-P2 = ParamSpec("P2")
-O = TypeVar("O")
 
 
 class _PartialTransformer(Generic[A, P1, S]):
@@ -180,8 +177,9 @@ def transformer(func: Callable[[A], S]) -> Transformer[A, S]:
             subscribed_users = filter_subscribed_users(users_list)
 
     Args:
-        func: A callable that takes a single argument and returns a result. The callable
-            should return an instance of the generic type :code:`S` specified.
+        func: A callable that takes a single argument of type :code:`A` and returns a
+            result of type :code:`S`.
+
     Returns:
         An instance of the Transformer class, encapsulating the transformation logic
         defined in the provided callable.
@@ -204,7 +202,7 @@ def transformer(func: Callable[[A], S]) -> Transformer[A, S]:
         def signature(self) -> Signature:
             return func_signature
 
-        def transform(self, data):
+        def transform(self, data: A) -> S:
             return func(data)
 
     lambda_transformer = LambdaTransformer()
@@ -230,7 +228,9 @@ def async_transformer(func: Callable[[A], Awaitable[S]]) -> AsyncTransformer[A, 
             await get_user_by_role("admin")
 
     Args:
-        func: A callable that takes a single argument and returns a coroutine.
+        func: A callable that takes a single argument of type :code:`A` and returns a
+            coroutine that yields a result of type :code:`S`.
+
     Returns:
         Returns an instance of the AsyncTransformer class, representing the built async
         transformer.
@@ -253,7 +253,7 @@ def async_transformer(func: Callable[[A], Awaitable[S]]) -> AsyncTransformer[A, 
         def signature(self) -> Signature:
             return func_signature
 
-        async def transform_async(self, data):
+        async def transform_async(self, data: A) -> S:
             return await func(data)
 
     lambda_transformer = LambdaAsyncTransformer()
