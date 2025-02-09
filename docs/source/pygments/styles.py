@@ -66,7 +66,7 @@ class GloeLightStyle(Style):
 
     styles = {
         Token: "#333333",
-        Whitespace: "#cccccc",
+        Whitespace: "#f8f8f8",
         Comment: "italic #666666",
         Comment.Preproc: "noitalic bold #ff3a3a",
         Comment.Special: "noitalic bold #e50808 bg:#f2dede",
