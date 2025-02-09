@@ -24,32 +24,27 @@ __all__ = [
 
 A = TypeVar("A")
 S = TypeVar("S")
-S2 = TypeVar("S2")
 P1 = ParamSpec("P1")
-P2 = ParamSpec("P2")
-O = TypeVar("O")
 
 
 class _PartialTransformer(Generic[A, P1, S]):
     def __init__(self, func: Callable[Concatenate[A, P1], S]):
-        """
-        Initialize a _PartialTransformer with a function that can be partially applied.
+        """Initialize a _PartialTransformer with a function that can be partially applied.
 
         Args:
-            func: A callable that takes a primary argument of type A and additional arguments.
+            func (Callable[Concatenate[A, P1], S]): A callable that takes a primary argument of type A and additional arguments.
         """
         self.func = func
 
     def __call__(self, *args: P1.args, **kwargs: P1.kwargs) -> Transformer[A, S]:
-        """
-        Create a Transformer instance with partially applied arguments.
+        """Create a Transformer instance with partially applied arguments.
 
         Args:
-            *args: Positional arguments to be partially applied.
-            **kwargs: Keyword arguments to be partially applied.
+            *args (P1.args): Positional arguments to be partially applied.
+            **kwargs (P1.kwargs): Keyword arguments to be partially applied.
 
         Returns:
-            A Transformer instance with the partially applied function.
+            Transformer[A, S]: A Transformer instance with the partially applied function.
         """
         func = self.func
         func_signature = inspect.signature(func)
@@ -59,23 +54,21 @@ class _PartialTransformer(Generic[A, P1, S]):
             __annotations__ = cast(FunctionType, func).__annotations__
 
             def signature(self) -> Signature:
-                """
-                Return the signature of the partially applied function.
+                """Return the signature of the partially applied function.
 
                 Returns:
-                    The signature of the function.
+                    Signature: The signature of the function.
                 """
                 return func_signature
 
             def transform(self, data: A) -> S:
-                """
-                Apply the partially applied function to the input data.
+                """Apply the partially applied function to the input data.
 
                 Args:
-                    data: The input data to transform.
+                    data (A): The input data to transform.
 
                 Returns:
-                    The result of the function application.
+                    S: The result of the function application.
                 """
                 return func(data, *args, **kwargs)
 
@@ -88,8 +81,7 @@ class _PartialTransformer(Generic[A, P1, S]):
 def partial_transformer(
     func: Callable[Concatenate[A, P1], S]
 ) -> _PartialTransformer[A, P1, S]:
-    """
-    Decorator to create partial transformers, allowing partial application of arguments.
+    """Decorator to create partial transformers, allowing partial application of arguments.
     Useful for creating configurable transformer instances.
 
     See Also:
@@ -111,34 +103,32 @@ def partial_transformer(
             get_enriched_data = get_data >> enrich_with_metadata
 
     Args:
-        func: Callable with arguments where the first is of type A and others are retained.
+        func (Callable[Concatenate[A, P1], S]): Callable with arguments where the first is of type A and others are retained.
 
     Returns:
-        An instance of _PartialTransformer.
+        _PartialTransformer[A, P1, S]: An instance of _PartialTransformer.
     """
     return _PartialTransformer(func)
 
 
 class _PartialAsyncTransformer(Generic[A, P1, S]):
     def __init__(self, func: Callable[Concatenate[A, P1], Awaitable[S]]):
-        """
-        Initialize a _PartialAsyncTransformer with an asynchronous function that can be partially applied.
+        """Initialize a _PartialAsyncTransformer with an asynchronous function that can be partially applied.
 
         Args:
-            func: An asynchronous callable that takes a primary argument of type A and additional arguments.
+            func (Callable[Concatenate[A, P1], Awaitable[S]]): An asynchronous callable that takes a primary argument of type A and additional arguments.
         """
         self.func = func
 
     def __call__(self, *args: P1.args, **kwargs: P1.kwargs) -> AsyncTransformer[A, S]:
-        """
-        Create an AsyncTransformer instance with partially applied arguments.
+        """Create an AsyncTransformer instance with partially applied arguments.
 
         Args:
-            *args: Positional arguments to be partially applied.
-            **kwargs: Keyword arguments to be partially applied.
+            *args (P1.args): Positional arguments to be partially applied.
+            **kwargs (P1.kwargs): Keyword arguments to be partially applied.
 
         Returns:
-            An AsyncTransformer instance with the partially applied function.
+            AsyncTransformer[A, S]: An AsyncTransformer instance with the partially applied function.
         """
         func = self.func
         func_signature = inspect.signature(func)
@@ -148,23 +138,21 @@ class _PartialAsyncTransformer(Generic[A, P1, S]):
             __annotations__ = cast(FunctionType, func).__annotations__
 
             def signature(self) -> Signature:
-                """
-                Return the signature of the partially applied function.
+                """Return the signature of the partially applied function.
 
                 Returns:
-                    The signature of the function.
+                    Signature: The signature of the function.
                 """
                 return func_signature
 
             async def transform_async(self, data: A) -> S:
-                """
-                Asynchronously apply the partially applied function to the input data.
+                """Asynchronously apply the partially applied function to the input data.
 
                 Args:
-                    data: The input data to transform.
+                    data (A): The input data to transform.
 
                 Returns:
-                    The result of the function application.
+                    S: The result of the function application.
                 """
                 return await func(data, *args, **kwargs)
 
@@ -177,8 +165,7 @@ class _PartialAsyncTransformer(Generic[A, P1, S]):
 def partial_async_transformer(
     func: Callable[Concatenate[A, P1], Awaitable[S]]
 ) -> _PartialAsyncTransformer[A, P1, S]:
-    """
-    Decorator to create partial asynchronous transformers, allowing partial application of arguments.
+    """Decorator to create partial asynchronous transformers, allowing partial application of arguments.
 
     See Also:
         For additional insights into partial asynchronous transformers and their practical
@@ -199,17 +186,16 @@ def partial_async_transformer(
             user_data = await load_user_data(user_id=1234)
 
     Args:
-        func: Callable with arguments where the first is of type A and others are retained.
+        func (Callable[Concatenate[A, P1], Awaitable[S]]): Callable with arguments where the first is of type A and others are retained.
 
     Returns:
-        An instance of _PartialAsyncTransformer.
+        _PartialAsyncTransformer[A, P1, S]: An instance of _PartialAsyncTransformer.
     """
     return _PartialAsyncTransformer(func)
 
 
 def transformer(func: Callable[[A], S]) -> Transformer[A, S]:
-    """
-    Convert a callable to a Transformer instance.
+    """Convert a callable to a Transformer instance.
 
     See Also:
         The most common usage is as a decorator. This example demonstrates how to use the
@@ -225,17 +211,16 @@ def transformer(func: Callable[[A], S]) -> Transformer[A, S]:
             subscribed_users = filter_subscribed_users(users_list)
 
     Args:
-        func: Callable with a single argument.
+        func (Callable[[A], S]): Callable with a single argument.
 
     Returns:
-        A Transformer instance encapsulating the transformation logic.
+        Transformer[A, S]: A Transformer instance encapsulating the transformation logic.
     """
     func_signature = inspect.signature(func)
 
     if len(func_signature.parameters) > 1:
         warnings.warn(
-            "Only one parameter is allowed on Transformers. "
-            f"Function '{func.__name__}' has the following signature: {func_signature}. "
+            f"Only one parameter is allowed on Transformers. Function '{func.__name__}' has the following signature: {func_signature}. "
             "To pass complex data, use complex types like named tuples, typed dicts, dataclasses, etc.",
             category=RuntimeWarning,
         )
@@ -245,23 +230,21 @@ def transformer(func: Callable[[A], S]) -> Transformer[A, S]:
         __annotations__ = cast(FunctionType, func).__annotations__
 
         def signature(self) -> Signature:
-            """
-            Return the signature of the function.
+            """Return the signature of the function.
 
             Returns:
-                The signature of the function.
+                Signature: The signature of the function.
             """
             return func_signature
 
         def transform(self, data: A) -> S:
-            """
-            Apply the function to the input data.
+            """Apply the function to the input data.
 
             Args:
-                data: The input data to transform.
+                data (A): The input data to transform.
 
             Returns:
-                The result of the function application.
+                S: The result of the function application.
             """
             return func(data)
 
@@ -272,8 +255,7 @@ def transformer(func: Callable[[A], S]) -> Transformer[A, S]:
 
 
 def async_transformer(func: Callable[[A], Awaitable[S]]) -> AsyncTransformer[A, S]:
-    """
-    Convert a callable to an AsyncTransformer instance.
+    """Convert a callable to an AsyncTransformer instance.
 
     See Also:
         For more information about this feature, refer to the :ref:`async-transformers`.
@@ -288,17 +270,16 @@ def async_transformer(func: Callable[[A], Awaitable[S]]) -> AsyncTransformer[A, 
             await get_user_by_role("admin")
 
     Args:
-        func: Callable with a single argument that returns a coroutine.
+        func (Callable[[A], Awaitable[S]]): Callable with a single argument that returns a coroutine.
 
     Returns:
-        An AsyncTransformer instance encapsulating the asynchronous transformation logic.
+        AsyncTransformer[A, S]: An AsyncTransformer instance encapsulating the asynchronous transformation logic.
     """
     func_signature = inspect.signature(func)
 
     if len(func_signature.parameters) > 1:
         warnings.warn(
-            "Only one parameter is allowed on Transformers. "
-            f"Function '{func.__name__}' has the following signature: {func_signature}. "
+            f"Only one parameter is allowed on Transformers. Function '{func.__name__}' has the following signature: {func_signature}. "
             "To pass complex data, use complex types like named tuples, typed dicts, dataclasses, etc.",
             category=RuntimeWarning,
         )
@@ -308,23 +289,21 @@ def async_transformer(func: Callable[[A], Awaitable[S]]) -> AsyncTransformer[A, 
         __annotations__ = cast(FunctionType, func).__annotations__
 
         def signature(self) -> Signature:
-            """
-            Return the signature of the function.
+            """Return the signature of the function.
 
             Returns:
-                The signature of the function.
+                Signature: The signature of the function.
             """
             return func_signature
 
         async def transform_async(self, data: A) -> S:
-            """
-            Asynchronously apply the function to the input data.
+            """Asynchronously apply the function to the input data.
 
             Args:
-                data: The input data to transform.
+                data (A): The input data to transform.
 
             Returns:
-                The result of the function application.
+                S: The result of the function application.
             """
             return await func(data)
 
