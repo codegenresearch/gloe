@@ -62,7 +62,7 @@ class GloeLightStyle(Style):
 
     background_color = "#ffffff"
     highlight_color = "#404040"
-    line_number_color = "#555555"
+    line_number_color = "#aaaaaa"
 
     styles = {
         Token: "#333333",
@@ -94,7 +94,7 @@ class GloeLightStyle(Style):
         Generic.Emph: "italic",
         Generic.Strong: "bold",
         Generic.EmphStrong: "bold italic",
-        Generic.Prompt: "#555555",
+        Generic.Prompt: "#aaaaaa",
         Generic.Output: "#333333",
         Generic.Traceback: "#ff3a3a",
         Error: "bg:#f2dede #a61717",
