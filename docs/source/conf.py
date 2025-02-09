@@ -27,7 +27,7 @@ extensions = [
     "sphinx.ext.napoleon",
     "sphinx.ext.intersphinx",
     "sphinxext.opengraph",
-    "sphinx_autodoc_typehints",
+    # "sphinx_autodoc_typehints",
     "myst_parser",
     "sphinx_copybutton",
 ]
@@ -69,8 +69,8 @@ html_theme_options = {
     "light_logo": "assets/gloe-logo-small.png",
     "dark_logo": "assets/gloe-logo-small.png",
     "light_css_variables": {
-        "color-brand-primary": "#00e6bf",
-        "color-brand-content": "#00e6bf",
+        "color-brand-primary": "#14c8ef",
+        "color-brand-content": "#14c8ef",
         "font-stack": "Roboto, sans-serif",
         "font-stack--monospace": "Courier, monospace",
         "font-size--normal": "Courier, monospace",
