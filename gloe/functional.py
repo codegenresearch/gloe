@@ -97,18 +97,24 @@ def partial_transformer(
         :ref:`partial-transformers`.
 
     Example:
-        @partial_transformer
-        def enrich_data(data: Data, enrichment_type: str) -> Data:
-            ...
+        .. code-block:: python
 
-        enrich_with_metadata = enrich_data(enrichment_type="metadata")
-        get_enriched_data = get_data >> enrich_with_metadata
+            @partial_transformer
+            def enrich_data(data: Data, enrichment_type: str) -> Data:
+                # Implementation for data enrichment based on the enrichment_type
+                ...
+
+            # Instantiate a transformer with the 'enrichment_type' pre-set
+            enrich_with_metadata = enrich_data(enrichment_type="metadata")
+
+            # Use the partially applied transformer
+            get_enriched_data = get_data >> enrich_with_metadata
 
     Args:
         func: Callable with arguments where the first is of type A and others are retained.
 
     Returns:
-        Instance of _PartialTransformer.
+        An instance of _PartialTransformer.
     """
     return _PartialTransformer(func)
 
@@ -179,18 +185,24 @@ def partial_async_transformer(
         applications, consult :ref:`partial-async-transformers`.
 
     Example:
-        @partial_async_transformer
-        async def load_data(user_id: int, data_type: str) -> Data:
-            ...
+        .. code-block:: python
 
-        load_user_data = load_data(data_type="user_profile")
-        user_data = await load_user_data(user_id=1234)
+            @partial_async_transformer
+            async def load_data(user_id: int, data_type: str) -> Data:
+                # Logic for loading data based on user_id and data_type
+                ...
+
+            # Instantiate a transformer with 'data_type' predefined
+            load_user_data = load_data(data_type="user_profile")
+
+            # Subsequent usage requires only the user_id
+            user_data = await load_user_data(user_id=1234)
 
     Args:
         func: Callable with arguments where the first is of type A and others are retained.
 
     Returns:
-        Instance of _PartialAsyncTransformer.
+        An instance of _PartialAsyncTransformer.
     """
     return _PartialAsyncTransformer(func)
 
@@ -204,17 +216,19 @@ def transformer(func: Callable[[A], S]) -> Transformer[A, S]:
         `@transformer` decorator to filter a list of users.
 
     Example:
-        @transformer
-        def filter_subscribed_users(users: list[User]) -> list[User]:
-           ...
+        .. code-block:: python
 
-        subscribed_users = filter_subscribed_users(users_list)
+            @transformer
+            def filter_subscribed_users(users: list[User]) -> list[User]:
+               ...
+
+            subscribed_users = filter_subscribed_users(users_list)
 
     Args:
         func: Callable with a single argument.
 
     Returns:
-        Transformer instance.
+        A Transformer instance encapsulating the transformation logic.
     """
     func_signature = inspect.signature(func)
 
@@ -265,17 +279,19 @@ def async_transformer(func: Callable[[A], Awaitable[S]]) -> AsyncTransformer[A, 
         For more information about this feature, refer to the :ref:`async-transformers`.
 
     Example:
-        @async_transformer
-        async def get_user_by_role(role: str) -> list[User]:
-           ...
+        .. code-block:: python
 
-        await get_user_by_role("admin")
+            @async_transformer
+            async def get_user_by_role(role: str) -> list[User]:
+               ...
+
+            await get_user_by_role("admin")
 
     Args:
         func: Callable with a single argument that returns a coroutine.
 
     Returns:
-        AsyncTransformer instance.
+        An AsyncTransformer instance encapsulating the asynchronous transformation logic.
     """
     func_signature = inspect.signature(func)
 
