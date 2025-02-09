@@ -27,6 +27,7 @@ extensions = [
     "sphinx.ext.napoleon",
     "sphinx.ext.intersphinx",
     "sphinxext.opengraph",
+    # "sphinx_autodoc_typehints",
     "myst_parser",
     "sphinx_copybutton",
 ]
@@ -80,6 +81,7 @@ html_theme_options = {
         "font-stack--monospace": "Courier, monospace",
         "font-size--normal": "Courier, monospace",
     },
+    # "main_nav_links": {"Docs": "/index", "About": "/about"},
     "footer_icons": [
         {
             "name": "GitHub",
