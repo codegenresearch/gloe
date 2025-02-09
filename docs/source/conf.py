@@ -60,6 +60,7 @@ html_last_updated_fmt = ""
 html_sidebars: dict[str, list[str]] = {
     "Home": ["/"],
 }
+# autodoc_default_options = {"ignore-module-all": True}
 
 html_static_path = ["_static"]
 html_css_files = ["theme_customs.css"]
@@ -96,6 +97,5 @@ html_theme_options = {
     ],
 }
 
-# pygments_style = "styles.GloeStyle"
 pygments_light_style = "styles.GloeLightStyle"
 pygments_dark_style = "styles.GloeDarkStyle"
