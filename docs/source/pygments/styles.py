@@ -65,7 +65,7 @@ class GloeLightStyle(Style):
     line_number_color = "#333333"
 
     styles = {
-        Token: "#333333",
+        Token: "#d0d0d0",
         Whitespace: "#666666",
         Comment: "italic #ababab",
         Comment.Preproc: "noitalic bold #ff3a3a",
