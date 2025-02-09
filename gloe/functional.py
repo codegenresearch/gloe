@@ -85,11 +85,9 @@ def partial_transformer(
     func: Callable[Concatenate[A, P1], S]
 ) -> _PartialTransformer[A, P1, S]:
     """Decorator to create partial transformers, allowing partial application of arguments.
-    Useful for creating configurable transformer instances.
 
-    This decorator is particularly useful when you want to fix some arguments of a transformer
-    function and create a new transformer with those arguments pre-filled. This can enhance
-    modularity and reusability in data processing pipelines.
+    This decorator is useful for creating configurable transformer instances where some arguments are preset,
+    enhancing modularity and reusability in data processing pipelines.
 
     See Also:
         For further details on partial transformers and their applications, see
@@ -110,7 +108,7 @@ def partial_transformer(
             get_enriched_data = get_data >> enrich_with_metadata
 
     Args:
-        func (Callable[Concatenate[A, P1], S]): Callable with arguments where the first is of type A and others are retained.
+        func (Callable[Concatenate[A, P1], S]): A callable with one or more arguments where the first is of type A and others are retained.
 
     Returns:
         _PartialTransformer[A, P1, S]: An instance of _PartialTransformer.
@@ -174,9 +172,8 @@ def partial_async_transformer(
 ) -> _PartialAsyncTransformer[A, P1, S]:
     """Decorator to create partial asynchronous transformers, allowing partial application of arguments.
 
-    This decorator is useful when you want to fix some arguments of an asynchronous transformer
-    function and create a new transformer with those arguments pre-filled. This can enhance
-    modularity and reusability in asynchronous data processing flows.
+    This decorator is useful for creating configurable asynchronous transformer instances where some arguments are preset,
+    enhancing modularity and reusability in asynchronous data processing flows.
 
     See Also:
         For additional insights into partial asynchronous transformers and their practical
@@ -197,7 +194,7 @@ def partial_async_transformer(
             user_data = await load_user_data(user_id=1234)
 
     Args:
-        func (Callable[Concatenate[A, P1], Awaitable[S]]): Callable with arguments where the first is of type A and others are retained.
+        func (Callable[Concatenate[A, P1], Awaitable[S]]): A callable with one or more arguments where the first is of type A and others are retained.
 
     Returns:
         _PartialAsyncTransformer[A, P1, S]: An instance of _PartialAsyncTransformer.
@@ -228,7 +225,7 @@ def transformer(func: Callable[[A], S]) -> Transformer[A, S]:
             subscribed_users = filter_subscribed_users(users_list)
 
     Args:
-        func (Callable[[A], S]): Callable with a single argument.
+        func (Callable[[A], S]): A callable with a single argument.
 
     Returns:
         Transformer[A, S]: A Transformer instance encapsulating the transformation logic.
@@ -293,7 +290,7 @@ def async_transformer(func: Callable[[A], Awaitable[S]]) -> AsyncTransformer[A, 
             await get_user_by_role("admin")
 
     Args:
-        func (Callable[[A], Awaitable[S]]): Callable with a single argument that returns a coroutine.
+        func (Callable[[A], Awaitable[S]]): A callable with a single argument that returns a coroutine.
 
     Returns:
         AsyncTransformer[A, S]: An AsyncTransformer instance encapsulating the asynchronous transformation logic.
