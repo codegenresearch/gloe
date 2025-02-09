@@ -64,16 +64,16 @@ class _PartialTransformer(Generic[A, P1, S]):
                 """
                 return func_signature
 
-            def transform(self, input_data: A) -> S:
+            def transform(self, data: A) -> S:
                 """Apply the partially applied function to the input data.
 
                 Args:
-                    input_data (A): The input data to transform.
+                    data (A): The input data to transform.
 
                 Returns:
                     S: The result of the function application.
                 """
-                return func(input_data, *args, **kwargs)
+                return func(data, *args, **kwargs)
 
         lambda_transformer = LambdaTransformer()
         lambda_transformer.__class__.__name__ = func.__name__
@@ -152,16 +152,16 @@ class _PartialAsyncTransformer(Generic[A, P1, S]):
                 """
                 return func_signature
 
-            async def transform_async(self, input_data: A) -> S:
+            async def transform_async(self, data: A) -> S:
                 """Asynchronously apply the partially applied function to the input data.
 
                 Args:
-                    input_data (A): The input data to transform.
+                    data (A): The input data to transform.
 
                 Returns:
                     S: The result of the function application.
                 """
-                return await func(input_data, *args, **kwargs)
+                return await func(data, *args, **kwargs)
 
         lambda_transformer = LambdaTransformer()
         lambda_transformer.__class__.__name__ = func.__name__
@@ -237,8 +237,8 @@ def transformer(func: Callable[[A], S]) -> Transformer[A, S]:
 
     if len(func_signature.parameters) > 1:
         warnings.warn(
-            f"Only one parameter is allowed on Transformers. Function '{func.__name__}' has the following signature: {func_signature}. "
-            "To pass complex data, use complex types like named tuples, typed dicts, dataclasses, etc.",
+            f"Function '{func.__name__}' has more than one parameter. Only one parameter is allowed on Transformers. "
+            "Consider using complex types like named tuples, typed dicts, or dataclasses to pass multiple pieces of data.",
             category=RuntimeWarning,
         )
 
@@ -254,16 +254,16 @@ def transformer(func: Callable[[A], S]) -> Transformer[A, S]:
             """
             return func_signature
 
-        def transform(self, input_data: A) -> S:
+        def transform(self, data: A) -> S:
             """Apply the function to the input data.
 
             Args:
-                input_data (A): The input data to transform.
+                data (A): The input data to transform.
 
             Returns:
                 S: The result of the function application.
             """
-            return func(input_data)
+            return func(data)
 
     lambda_transformer = LambdaTransformer()
     lambda_transformer.__class__.__name__ = func.__name__
@@ -302,8 +302,8 @@ def async_transformer(func: Callable[[A], Awaitable[S]]) -> AsyncTransformer[A, 
 
     if len(func_signature.parameters) > 1:
         warnings.warn(
-            f"Only one parameter is allowed on Transformers. Function '{func.__name__}' has the following signature: {func_signature}. "
-            "To pass complex data, use complex types like named tuples, typed dicts, dataclasses, etc.",
+            f"Function '{func.__name__}' has more than one parameter. Only one parameter is allowed on Transformers. "
+            "Consider using complex types like named tuples, typed dicts, or dataclasses to pass multiple pieces of data.",
             category=RuntimeWarning,
         )
 
@@ -319,16 +319,16 @@ def async_transformer(func: Callable[[A], Awaitable[S]]) -> AsyncTransformer[A, 
             """
             return func_signature
 
-        async def transform_async(self, input_data: A) -> S:
+        async def transform_async(self, data: A) -> S:
             """Asynchronously apply the function to the input data.
 
             Args:
-                input_data (A): The input data to transform.
+                data (A): The input data to transform.
 
             Returns:
                 S: The result of the function application.
             """
-            return await func(input_data)
+            return await func(data)
 
     lambda_transformer = LambdaAsyncTransformer()
     lambda_transformer.__class__.__name__ = func.__name__
