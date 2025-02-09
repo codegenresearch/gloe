@@ -61,13 +61,13 @@ class GloeLightStyle(Style):
     name = "gloe-light"
 
     background_color = "#ffffff"
-    highlight_color = "#e0e0e0"
+    highlight_color = "#404040"
     line_number_color = "#555555"
 
     styles = {
         Token: "#333333",
-        Whitespace: "#999999",
-        Comment: "italic #888888",
+        Whitespace: "#bbbbbb",
+        Comment: "italic #666666",
         Comment.Preproc: "noitalic bold #ff3a3a",
         Comment.Special: "noitalic bold #e50808 bg:#f2dede",
         Keyword: "bold #45df9a",
