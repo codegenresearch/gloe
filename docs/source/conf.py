@@ -27,7 +27,7 @@ extensions = [
     "sphinx.ext.napoleon",
     "sphinx.ext.intersphinx",
     "sphinxext.opengraph",
-    # "sphinx_autodoc_typehints",
+    "sphinx_autodoc_typehints",
     "myst_parser",
     "sphinx_copybutton",
 ]
@@ -45,6 +45,8 @@ autodoc_typehints = "description"
 autodoc_type_aliases = {
     "PreviousTransformer": "gloe.base_transformer.PreviousTransformer"
 }
+# autodoc_default_options = {"ignore-module-all": True}
+
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
@@ -58,7 +60,6 @@ html_last_updated_fmt = ""
 html_sidebars: dict[str, list[str]] = {
     "Home": ["/"],
 }
-# autodoc_default_options = {"ignore-module-all": True}
 
 html_static_path = ["_static"]
 html_css_files = ["theme_customs.css"]
