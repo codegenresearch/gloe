@@ -72,14 +72,14 @@ html_theme_options = {
         "color-brand-content": "#45df9a",
         "font-stack": "Roboto, sans-serif",
         "font-stack--monospace": "Courier, monospace",
-        "font-size--normal": "Courier, monospace",
+        "font-size--normal": "16px",
     },
     "light_css_variables": {
-        "color-brand-primary": "#45df9a",
-        "color-brand-content": "#45df9a",
+        "color-brand-primary": "#14c8ef",
+        "color-brand-content": "#14c8ef",
         "font-stack": "Roboto, sans-serif",
         "font-stack--monospace": "Courier, monospace",
-        "font-size--normal": "Courier, monospace",
+        "font-size--normal": "16px",
     },
     # "main_nav_links": {"Docs": "/index", "About": "/about"},
     "footer_icons": [
