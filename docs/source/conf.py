@@ -22,12 +22,12 @@ extensions = [
     "sphinx_toolbox.more_autodoc.variables",
     "sphinx.ext.autosectionlabel",
     "sphinx.ext.autodoc",
-    "sphinx.ext.autosummary",
+    # "sphinx.ext.autosummary",
     "sphinx.ext.viewcode",
     "sphinx.ext.napoleon",
     "sphinx.ext.intersphinx",
     "sphinxext.opengraph",
-    "sphinx_autodoc_typehints",
+    # "sphinx_autodoc_typehints",
     "myst_parser",
     "sphinx_copybutton",
 ]
@@ -35,7 +35,7 @@ overloads_location = "bottom"
 napoleon_google_docstring = True
 autosectionlabel_prefix_document = True
 napoleon_use_rtype = False
-intersphinx_mapping = {"httpx": ("https://www.python-httpx.org/", None)}
+# intersphinx_mapping = {"httpx": ("https://www.python-httpx.org/", None)}
 ogp_site_url = "https://gloe.ideos.com.br/"
 ogp_image = "https://gloe.ideos.com.br/_static/assets/gloe-logo.png"
 
@@ -56,7 +56,7 @@ html_last_updated_fmt = ""
 # html_use_index = False  # Don't create index
 # html_domain_indices = False  # Don't need module indices
 # html_copy_source = False  # Don't need sources
-html_sidebars = {
+html_sidebars: dict[str, list[str]] = {
     "Home": ["/"],
 }
 # autodoc_default_options = {"ignore-module-all": True}
@@ -68,15 +68,15 @@ html_theme_options = {
     "light_logo": "assets/gloe-logo-small.png",
     "dark_logo": "assets/gloe-logo-small.png",
     "dark_css_variables": {
-        "color-brand-primary": "#14c8ef",
-        "color-brand-content": "#14c8ef",
+        "color-brand-primary": "#45df9a",
+        "color-brand-content": "#45df9a",
         "font-stack": "Roboto, sans-serif",
         "font-stack--monospace": "Courier, monospace",
         "font-size--normal": "Courier, monospace",
     },
     "light_css_variables": {
-        "color-brand-primary": "#14c8ef",
-        "color-brand-content": "#14c8ef",
+        "color-brand-primary": "#45df9a",
+        "color-brand-content": "#45df9a",
         "font-stack": "Roboto, sans-serif",
         "font-stack--monospace": "Courier, monospace",
         "font-size--normal": "Courier, monospace",
