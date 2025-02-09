@@ -235,7 +235,7 @@ def async_transformer(func: Callable[[A], Awaitable[S]]) -> AsyncTransformer[A, 
             coroutine that yields a result of type :code:`S`.
 
     Returns:
-        Returns an instance of the AsyncTransformer class, representing the built async
+        An instance of the AsyncTransformer class, representing the built async
         transformer.
     """
     func_signature = inspect.signature(func)
