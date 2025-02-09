@@ -35,7 +35,7 @@ overloads_location = "bottom"
 napoleon_google_docstring = True
 autosectionlabel_prefix_document = True
 napoleon_use_rtype = False
-intersphinx_mapping = {"httpx": ("https://www.python-httpx.org/", None)}
+# intersphinx_mapping = {"httpx": ("https://www.python-httpx.org/", None)}
 ogp_site_url = "https://gloe.ideos.com.br/"
 ogp_image = "https://gloe.ideos.com.br/_static/assets/gloe-logo.png"
 
@@ -74,14 +74,14 @@ html_theme_options = {
         "color-brand-content": "#14c8ef",
         "font-stack": "Roboto, sans-serif",
         "font-stack--monospace": "Courier, monospace",
-        "font-size--normal": "Courier, monospace",
+        "font-size--normal": "16px",
     },
     "dark_css_variables": {
         "color-brand-primary": "#00e6bf",
         "color-brand-content": "#00e6bf",
         "font-stack": "Roboto, sans-serif",
         "font-stack--monospace": "Courier, monospace",
-        "font-size--normal": "Courier, monospace",
+        "font-size--normal": "16px",
     },
     "footer_icons": [
         {
@@ -97,6 +97,5 @@ html_theme_options = {
     ],
 }
 
-# pygments_style = "styles.GloeStyle"
 pygments_light_style = "styles.GloeLightStyle"
 pygments_dark_style = "styles.GloeDarkStyle"
