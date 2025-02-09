@@ -24,7 +24,10 @@ __all__ = [
 
 A = TypeVar("A")
 S = TypeVar("S")
+S2 = TypeVar("S2")
 P1 = ParamSpec("P1")
+P2 = ParamSpec("P2")
+O = TypeVar("O")
 
 
 class _PartialTransformer(Generic[A, P1, S]):
@@ -80,9 +83,9 @@ def partial_transformer(
             get_enriched_data = get_data >> enrich_with_metadata
 
     Args:
-        func: A callable with one or more arguments. The first argument is of type
-            :code:`A`. The subsequent arguments are retained for use during transformer
-            instantiation. This callable returns a value of type :code:`S`.
+        func: A callable that takes a single argument of type :code:`A` and additional
+            arguments specified by :code:`P1`. This callable returns a value of type
+            :code:`S`.
 
     Returns:
         An instance of the :code:`_PartialTransformer`, an internal class used within
@@ -144,10 +147,9 @@ def partial_async_transformer(
             user_data = await load_user_data(user_id=1234)
 
     Args:
-        func: A callable with one or more arguments, the first of which is of type `A`.
-            Remaining arguments are preserved for later use during the instantiation of
-            the transformer. This callable must asynchronously return a result of type
-            `S`.
+        func: A callable that takes a single argument of type :code:`A` and additional
+            arguments specified by :code:`P1`. This callable returns a coroutine that
+            yields a result of type :code:`S`.
 
     Returns:
         An instance of the :code:`_PartialAsyncTransformer`, an internal class used
@@ -179,7 +181,8 @@ def transformer(func: Callable[[A], S]) -> Transformer[A, S]:
 
     Returns:
         An instance of the Transformer class, encapsulating the transformation logic
-        defined in the provided callable.
+        defined in the provided callable. This instance can be used in data processing
+        pipelines to apply the transformation to input data.
     """
     func_signature = inspect.signature(func)
 
@@ -230,7 +233,8 @@ def async_transformer(func: Callable[[A], Awaitable[S]]) -> AsyncTransformer[A, 
 
     Returns:
         An instance of the AsyncTransformer class, representing the built async
-        transformer.
+        transformer. This instance can be used in asynchronous data processing pipelines
+        to apply the transformation to input data.
     """
     func_signature = inspect.signature(func)
 
