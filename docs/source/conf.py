@@ -97,5 +97,6 @@ html_theme_options = {
     ],
 }
 
+# pygments_style = "styles.GloeStyle"
 pygments_light_style = "styles.GloeLightStyle"
 pygments_dark_style = "styles.GloeDarkStyle"
