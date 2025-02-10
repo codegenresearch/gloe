@@ -69,6 +69,9 @@ class RequestData(AsyncTransformer[str, dict[str, str]]):
         await asyncio.sleep(0.01)
         return _DATA
 
+async def _execute_async_flow(flow, arg):
+    raise NotImplementedError()
+
 class TestAsyncTransformer(unittest.IsolatedAsyncioTestCase):
     async def test_basic_case(self):
         test_forward = request_data >> forward()
