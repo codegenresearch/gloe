@@ -1,12 +1,14 @@
 from typing import TypeVar, Union
 from typing_extensions import assert_type
-from gloe import Transformer, AsyncTransformer, async_transformer
+
+from gloe import Transformer, AsyncTransformer, async_transformer, bridge
 from gloe.utils import forward
 from tests.lib.transformers import square, square_root, plus1, minus1, to_string, tuple_concatenate
 from tests.type_utils.mypy_test_suite import MypyTestSuite
 
 In = TypeVar("In")
 Out = TypeVar("Out")
+
 
 class TestBasicTransformerTypes(MypyTestSuite):
 
@@ -20,7 +22,7 @@ class TestBasicTransformerTypes(MypyTestSuite):
 
     def test_simple_flow_typing(self):
         """
-        Test a simple transformer flow typing
+        Test the most simple transformer typing
         """
 
         graph = square >> square_root
@@ -29,7 +31,7 @@ class TestBasicTransformerTypes(MypyTestSuite):
 
     def test_flow_with_mixed_types(self):
         """
-        Test a transformer flow with mixed output types
+        Test the most simple transformer typing
         """
 
         graph = square >> square_root >> to_string
@@ -38,7 +40,7 @@ class TestBasicTransformerTypes(MypyTestSuite):
 
     def test_divergent_flow_types(self):
         """
-        Test transformer flows with divergent output types
+        Test the most simple transformer typing
         """
 
         graph2 = square >> square_root >> (to_string, square)
@@ -74,7 +76,9 @@ class TestBasicTransformerTypes(MypyTestSuite):
         )
 
     def test_bridge(self):
-        graph = plus1 >> bridge[float]("num").pick() >> minus1 >> bridge[float]("num").drop()
+        num_bridge = bridge[float]("num")
+
+        graph = plus1 >> num_bridge.pick() >> minus1 >> num_bridge.drop()
 
         assert_type(graph, Transformer[float, tuple[float, float]])
 
