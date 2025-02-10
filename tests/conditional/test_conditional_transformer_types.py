@@ -17,13 +17,14 @@ from gloe import (
     AsyncTransformer,
 )
 from gloe.utils import forward
+from tests.type_utils.mypy_test_suite import MypyTestSuite
 
 In = TypeVar("In")
 Out = TypeVar("Out")
 
 
-class TestTransformerTypes:
-    mypy_result: str = ""
+class TestTransformerTypes(MypyTestSuite):
+    mypy_result: str
 
     def test_conditioned_flow_types(self):
         """
