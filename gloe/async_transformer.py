@@ -4,7 +4,7 @@ import types
 import uuid
 from abc import abstractmethod, ABC
 from inspect import Signature
-from typing import TypeVar, overload, cast, Any, Callable, Awaitable, get_origin, get_args, Union
+from typing import TypeVar, overload, cast, Any, Callable, Awaitable, Union
 
 from gloe.base_transformer import (
     TransformerException,
@@ -57,16 +57,13 @@ class AsyncTransformer(BaseTransformer[_In, _Out, "AsyncTransformer"], ABC):
         return f"{self.input_annotation} -> ({type(self).__name__}) -> {self.output_annotation}"
 
     async def __call__(self, data: _In) -> _Out:
-        if not isinstance(data, get_origin(self.input_type)):
-            raise TypeError(f"Expected input type {self.input_type}, got {type(data)}")
-
         transform_exception = None
 
         transformed: _Out | None = None
         try:
             transformed = await self.transform_async(data)
         except Exception as exception:
-            if type(exception.__cause__) == TransformerException:
+            if isinstance(exception.__cause__, TransformerException):
                 transform_exception = exception.__cause__
             else:
                 tb = traceback.extract_tb(exception.__traceback__)
@@ -100,7 +97,7 @@ class AsyncTransformer(BaseTransformer[_In, _Out, "AsyncTransformer"], ABC):
         if transform_exception is not None:
             raise transform_exception.internal_exception
 
-        if type(transformed) is not None:
+        if transformed is not None:
             return cast(_Out, transformed)
 
         raise NotImplementedError  # pragma: no cover
@@ -122,7 +119,7 @@ class AsyncTransformer(BaseTransformer[_In, _Out, "AsyncTransformer"], ABC):
             copied.instance_id = uuid.uuid4()
 
         if self.previous is not None:
-            if type(self.previous) is tuple:
+            if isinstance(self.previous, tuple):
                 new_previous: list[BaseTransformer] = [
                     previous_transformer.copy() for previous_transformer in self.previous
                 ]
@@ -221,5 +218,6 @@ class AsyncTransformer(BaseTransformer[_In, _Out, "AsyncTransformer"], ABC):
         pass
 
     def __rshift__(self, next_node):
-        # pragma: no cover
-        pass
+        from gloe._composition_utils import _compose_nodes
+
+        return _compose_nodes(self, next_node)  # pragma: no cover
