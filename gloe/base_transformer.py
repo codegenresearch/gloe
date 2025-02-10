@@ -31,6 +31,14 @@ _Out = TypeVar("_Out")
 _NextOut = TypeVar("_NextOut")
 _Self = TypeVar("_Self", bound="BaseTransformer")
 
+_Out2 = TypeVar("_Out2")
+_Out3 = TypeVar("_Out3")
+_Out4 = TypeVar("_Out4")
+_Out5 = TypeVar("_Out5")
+_Out6 = TypeVar("_Out6")
+_Out7 = TypeVar("_Out7")
+
+
 PreviousTransformer: TypeAlias = Union[
     None,
     _Self,
@@ -75,7 +83,7 @@ class BaseTransformer(Generic[_In, _Out]):
 
     @property
     def label(self) -> str:
-        """Label used in visualization."""
+        """Label used in visualization. When the transformer is created by the `@transformer` decorator, it is the name of the function. When creating a transformer by extending the `Transformer` class, it is the name of the class."""
         return self._label
 
     @property
@@ -90,7 +98,7 @@ class BaseTransformer(Generic[_In, _Out]):
 
     @property
     def previous(self) -> PreviousTransformer:
-        """Previous transformers."""
+        """Previous transformers. It can be None, a single transformer, or a tuple of many transformers."""
         return self._previous
 
     @property
@@ -112,7 +120,7 @@ class BaseTransformer(Generic[_In, _Out]):
         self,
         transform: Callable[[_In], _Out] | None = None,
         regenerate_instance_id: bool = False,
-    ) -> "BaseTransformer":
+    ) -> _Self:
         """Creates a copy of the transformer with optional modifications."""
         copied = copy.copy(self)
 
@@ -242,7 +250,7 @@ class BaseTransformer(Generic[_In, _Out]):
         child: "BaseTransformer",
         child_net: DiGraph,
         parent_id: str,
-        next_node: "BaseTransformer",
+        next_node: "BaseTransformer" | None,
     ):
         """Adds a child node to the network graph."""
         child._dag(child_net, next_node, custom_data={"parent_id": parent_id})
@@ -271,9 +279,13 @@ class BaseTransformer(Generic[_In, _Out]):
 
         return previous
 
-    def _add_children_subgraph(self, net: DiGraph, next_node: "BaseTransformer"):
+    def _add_children_subgraph(self, net: DiGraph, next_node: "BaseTransformer" | None):
         """Adds a subgraph for children nodes."""
-        next_node_id = next_node.node_id
+        if next_node:
+            next_node_id = next_node.node_id
+        else:
+            next_node_id = None
+
         children_nets = [DiGraph() for _ in self.children]
         visible_previous = self.visible_previous
 
@@ -301,7 +313,7 @@ class BaseTransformer(Generic[_In, _Out]):
                 node_id = self._add_net_node(net)
                 net.add_edge(node_id, child_root_node)
 
-            if child_final_node != next_node_id:
+            if next_node_id and child_final_node != next_node_id:
                 net.add_edge(
                     child_final_node, next_node_id, label=next_node.input_annotation
                 )
