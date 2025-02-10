@@ -21,7 +21,7 @@ async def request_data(url: str) -> dict[str, str]:
     return _DATA
 
 
-class HasFooKey(Exception):
+class HasNotBarKey(Exception):
     pass
 
 
@@ -39,7 +39,7 @@ class IsNotStr(Exception):
 
 def has_bar_key(data: dict[str, str]):
     if "bar" not in data.keys():
-        raise HasNotFooKey()
+        raise HasNotBarKey()
 
 
 def has_foo_key(data: dict[str, str]):
@@ -49,7 +49,7 @@ def has_foo_key(data: dict[str, str]):
 
 def foo_key_removed(incoming: dict[str, str], outcome: dict[str, str]):
     if "foo" in incoming and "foo" not in outcome:
-        raise HasFooKey()
+        raise HasNotFooKey()
 
 
 def is_int(data: Any):
@@ -124,7 +124,7 @@ class TestAsyncTransformer(unittest.IsolatedAsyncioTestCase):
 
         pipeline = ensured_request >> forward()
 
-        with self.assertRaises(HasNotFooKey):
+        with self.assertRaises(HasNotBarKey):
             await pipeline(_URL)
 
     async def test_ensure_partial_async_transformer(self):
@@ -137,7 +137,7 @@ class TestAsyncTransformer(unittest.IsolatedAsyncioTestCase):
 
         pipeline = ensured_delayed_request(0.1) >> forward()
 
-        with self.assertRaises(HasNotFooKey):
+        with self.assertRaises(HasNotBarKey):
             await pipeline(_URL)
 
     async def test_async_transformer_wrong_arg(self):
@@ -191,13 +191,14 @@ class TestAsyncTransformer(unittest.IsolatedAsyncioTestCase):
         async def remove_foo(data: dict[str, str]) -> dict[str, str]:
             await asyncio.sleep(0.1)
             if "foo" in data:
-                data.pop("foo", None)
-                raise HasFooKey()
+                new_data = data.copy()
+                new_data.pop("foo", None)
+                return new_data
             return data
 
         pipeline = request_data >> remove_foo >> forward()
 
-        with self.assertRaises(HasFooKey):
+        with self.assertRaises(HasNotFooKey):
             await pipeline(_URL)
 
     async def test_transformer_wrong_signature(self):
