@@ -23,16 +23,13 @@ from itertools import groupby
 import networkx as nx
 from networkx import DiGraph
 
+from gloe._utils import _format_return_annotation
+
 __all__ = ["BaseTransformer", "TransformerException", "PreviousTransformer"]
 
 _In = TypeVar("_In")
 _Out = TypeVar("_Out")
-_Out2 = TypeVar("_Out2")
-_Out3 = TypeVar("_Out3")
-_Out4 = TypeVar("_Out4")
-_Out5 = TypeVar("_Out5")
-_Out6 = TypeVar("_Out6")
-_Out7 = TypeVar("_Out7")
+_NextOut = TypeVar("_NextOut")
 _Self = TypeVar("_Self", bound="BaseTransformer")
 
 PreviousTransformer: TypeAlias = Union[
@@ -63,13 +60,13 @@ class TransformerException(Exception):
 
 class BaseTransformer(Generic[_In, _Out]):
     def __init__(self):
-        self._previous = None
-        self._children = []
+        self._previous: PreviousTransformer = None
+        self._children: list["BaseTransformer"] = []
         self._invisible = False
         self.id = uuid.uuid4()
         self.instance_id = uuid.uuid4()
         self._label = self.__class__.__name__
-        self._graph_node_props = {"shape": "box"}
+        self._graph_node_props: dict[str, Any] = {"shape": "box"}
         self.events = []
 
     @property
@@ -212,7 +209,7 @@ class BaseTransformer(Generic[_In, _Out]):
     @property
     def output_annotation(self) -> str:
         """Returns the output annotation of the transformer."""
-        return self.output_type.__name__
+        return _format_return_annotation(self.output_type, None, None)
 
     @property
     def input_type(self) -> Any:
@@ -224,7 +221,7 @@ class BaseTransformer(Generic[_In, _Out]):
     @property
     def input_annotation(self) -> str:
         """Returns the input annotation of the transformer."""
-        return self.input_type.__name__
+        return _format_return_annotation(self.input_type, None, None)
 
     def _add_net_node(self, net: DiGraph, custom_data: dict[str, Any] = {}) -> str:
         """Adds a node to the network graph."""
