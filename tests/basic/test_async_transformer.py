@@ -10,7 +10,7 @@ from gloe import (
     TransformerException,
 )
 from gloe.functional import partial_async_transformer
-from gloe.utils import forward
+from gloe.utils import forward, _execute_async_flow
 
 from tests.lib.ensurers import is_odd
 from tests.lib.exceptions import LnOfNegativeNumber, NumbersEqual, NumberIsEven
@@ -18,8 +18,10 @@ from tests.lib.transformers import async_plus1, async_natural_logarithm, minus1
 
 _In = TypeVar("_In")
 
-_DATA = {"foo": "bar"}
-_URL = "http://my-service"
+class RequestData(AsyncTransformer[str, dict[str, str]]):
+    async def transform_async(self, url: str) -> dict[str, str]:
+        await asyncio.sleep(0.01)
+        return _DATA
 
 class HasNotBarKey(Exception):
     pass
@@ -64,13 +66,8 @@ async def request_data(url: str) -> dict[str, str]:
     await asyncio.sleep(0.01)
     return _DATA
 
-class RequestData(AsyncTransformer[str, dict[str, str]]):
-    async def transform_async(self, url: str) -> dict[str, str]:
-        await asyncio.sleep(0.01)
-        return _DATA
-
-async def _execute_async_flow(flow, arg):
-    raise NotImplementedError()
+_DATA = {"foo": "bar"}
+_URL = "http://my-service"
 
 class TestAsyncTransformer(unittest.IsolatedAsyncioTestCase):
     async def test_basic_case(self):
