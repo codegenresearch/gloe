@@ -30,7 +30,6 @@ class TransformerEnsurer(Generic[_T, _S], ABC):
             return output
 
         transformer_cp = transformer.copy(transform)
-        transformer_cp.__class__.__name__ = transformer.__class__.__name__
         return transformer_cp
 
 
@@ -122,7 +121,6 @@ class _ensure_incoming(Generic[_T], _ensure_base):
             return transformer.transform(data)
 
         transformer_cp = transformer.copy(transform)
-        transformer_cp.__class__.__name__ = transformer.__class__.__name__
         return transformer_cp
 
     def _generate_new_async_transformer(self, transformer: AsyncTransformer) -> AsyncTransformer:
@@ -132,7 +130,6 @@ class _ensure_incoming(Generic[_T], _ensure_base):
             return await transformer.transform_async(data)
 
         transformer_cp = transformer.copy(transform_async)
-        transformer_cp.__class__.__name__ = transformer.__class__.__name__
         return transformer_cp
 
 
@@ -148,7 +145,6 @@ class _ensure_outcome(Generic[_S], _ensure_base):
             return output
 
         transformer_cp = transformer.copy(transform)
-        transformer_cp.__class__.__name__ = transformer.__class__.__name__
         return transformer_cp
 
     def _generate_new_async_transformer(self, transformer: AsyncTransformer) -> AsyncTransformer:
@@ -159,7 +155,6 @@ class _ensure_outcome(Generic[_S], _ensure_base):
             return output
 
         transformer_cp = transformer.copy(transform_async)
-        transformer_cp.__class__.__name__ = transformer.__class__.__name__
         return transformer_cp
 
 
@@ -175,7 +170,6 @@ class _ensure_changes(Generic[_T, _S], _ensure_base):
             return output
 
         transformer_cp = transformer.copy(transform)
-        transformer_cp.__class__.__name__ = transformer.__class__.__name__
         return transformer_cp
 
     def _generate_new_async_transformer(self, transformer: AsyncTransformer) -> AsyncTransformer:
@@ -186,7 +180,6 @@ class _ensure_changes(Generic[_T, _S], _ensure_base):
             return output
 
         transformer_cp = transformer.copy(transform_async)
-        transformer_cp.__class__.__name__ = transformer.__class__.__name__
         return transformer_cp
 
 
@@ -205,7 +198,6 @@ class _ensure_both(Generic[_T, _S], _ensure_base):
             return output
 
         transformer_cp = transformer.copy(transform)
-        transformer_cp.__class__.__name__ = transformer.__class__.__name__
         return transformer_cp
 
     def _generate_new_async_transformer(self, transformer: AsyncTransformer) -> AsyncTransformer:
@@ -218,7 +210,6 @@ class _ensure_both(Generic[_T, _S], _ensure_base):
             return output
 
         transformer_cp = transformer.copy(transform_async)
-        transformer_cp.__class__.__name__ = transformer.__class__.__name__
         return transformer_cp
 
 
@@ -276,11 +267,18 @@ def ensure(*args, **kwargs):
             incoming type, and type :code:`_S` refers to the outcome type.
             Default value: :code:`[]`.
     """
+    if "incoming" in kwargs and "outcome" in kwargs and "changes" in kwargs:
+        return _ensure_both(kwargs["incoming"], kwargs["outcome"], kwargs["changes"])
+    if "incoming" in kwargs and "outcome" in kwargs:
+        return _ensure_both(kwargs["incoming"], kwargs["outcome"], [])
+    if "incoming" in kwargs and "changes" in kwargs:
+        return _ensure_both(kwargs["incoming"], [], kwargs["changes"])
+    if "outcome" in kwargs and "changes" in kwargs:
+        return _ensure_both([], kwargs["outcome"], kwargs["changes"])
     if "incoming" in kwargs:
         return _ensure_incoming(kwargs["incoming"])
     if "outcome" in kwargs:
         return _ensure_outcome(kwargs["outcome"])
     if "changes" in kwargs:
         return _ensure_changes(kwargs["changes"])
-    if len(kwargs) > 1:
-        return _ensure_both(kwargs.get("incoming", []), kwargs.get("outcome", []), kwargs.get("changes", []))
+    return _ensure_both([], [], [])
