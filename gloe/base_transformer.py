@@ -198,7 +198,7 @@ class BaseTransformer(Generic[_In, _Out, _Self]):
     def output_annotation(self) -> str:
         """Returns the output annotation of the transformer."""
         output_type = self.output_type
-        return self._format_return_annotation(output_type, None, None)
+        return self._format_return_annotation(output_type)
 
     @property
     def input_type(self) -> Any:
@@ -276,14 +276,14 @@ class BaseTransformer(Generic[_In, _Out, _Self]):
             if self.invisible:
                 if isinstance(visible_previous, tuple):
                     for prev in visible_previous:
-                        net.add_edge(prev.node_id, child_root_node, label=prev.output_annotation)
+                        net.add_edge(prev.node_id, child_root_node, label=self._format_return_annotation(prev.output_type))
                 elif isinstance(visible_previous, BaseTransformer):
-                    net.add_edge(visible_previous.node_id, child_root_node, label=visible_previous.output_annotation)
+                    net.add_edge(visible_previous.node_id, child_root_node, label=self._format_return_annotation(visible_previous.output_type))
             else:
                 node_id = self._add_net_node(net)
                 net.add_edge(node_id, child_root_node)
             if child_final_node != next_node_id:
-                net.add_edge(child_final_node, next_node_id, label=next_node.input_annotation)
+                net.add_edge(child_final_node, next_node_id, label=self._format_return_annotation(next_node.input_type))
 
     def _dag(self, net: DiGraph, next_node: _Self | None = None, custom_data: dict[str, Any] = {}):
         """Generates the directed acyclic graph."""
@@ -306,7 +306,7 @@ class BaseTransformer(Generic[_In, _Out, _Self]):
                 for prev in previous:
                     previous_node_id = prev.node_id
                     if not prev.invisible and len(prev.children) == 0:
-                        net.add_edge(previous_node_id, next_node_id, label=prev.output_annotation)
+                        net.add_edge(previous_node_id, next_node_id, label=self._format_return_annotation(prev.output_type))
                     if previous_node_id not in in_nodes:
                         prev._dag(net, _next_node, custom_data)
             elif isinstance(previous, BaseTransformer):
@@ -319,7 +319,7 @@ class BaseTransformer(Generic[_In, _Out, _Self]):
                 previous_node_id = previous.node_id
                 if len(previous.children) == 0 and (not previous.invisible or previous.previous is None):
                     previous_node_id = previous._add_net_node(net)
-                    net.add_edge(previous_node_id, next_node_id, label=previous.output_annotation)
+                    net.add_edge(previous_node_id, next_node_id, label=self._format_return_annotation(previous.output_type))
                 if previous_node_id not in in_nodes:
                     previous._dag(net, _next_node, custom_data)
         else:
@@ -360,6 +360,8 @@ class BaseTransformer(Generic[_In, _Out, _Self]):
         return 1
 
     @staticmethod
-    def _format_return_annotation(output_type: Any, _1: Any, _2: Any) -> str:
+    def _format_return_annotation(output_type: Any) -> str:
         """Formats the return annotation."""
+        if isinstance(output_type, type):
+            return output_type.__name__
         return str(output_type)
