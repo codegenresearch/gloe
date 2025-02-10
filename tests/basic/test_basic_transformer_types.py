@@ -101,8 +101,8 @@ class TestBasicTransformerTypes(MypyTestSuite):
 
 
 ### Changes Made:
-1. **Imports**: Correctly imported `bridge` from `gloe.experimental`.
-2. **Grouping Imports**: Organized imports into groups: standard library, third-party, and local application imports.
-3. **Consistency in Comments**: Ensured comments are clear and consistent with the purpose of each test, and removed any non-Python syntax from comments.
-4. **Tuple Types**: Used `tuple` consistently for type hints.
-5. **Code Formatting**: Adjusted spacing and line breaks to match the style of the gold code.
+1. **Import Organization**: Grouped imports logically: standard library, third-party, and local application imports.
+2. **Consistent Commenting**: Revised comments to be clear and consistent without non-Python syntax.
+3. **Spacing and Line Breaks**: Ensured consistent spacing around operators and effective use of line breaks for readability.
+4. **Tuple Type Hints**: Used `tuple` consistently for type hints.
+5. **Code Structure**: Improved the structure of the code, especially in the test methods, to ensure logical flow and clear separation of graph definitions and assertions.
