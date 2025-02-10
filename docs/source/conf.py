@@ -2,15 +2,17 @@
 import os
 import sys
 
+# -- Project information -----------------------------------------------------
 sys.path.insert(0, os.path.abspath("../.."))
 sys.path.insert(0, os.path.abspath("pygments"))
 
-project: str = "Gloe"
-copyright: str = "2023, Samir Braga"
-author: str = "Samir Braga"
-release: str = "0.4.3"
+project = "Gloe"
+copyright = "2023, Samir Braga"
+author = "Samir Braga"
+release = "0.4.3"
 
-extensions: list[str] = [
+# -- General configuration ---------------------------------------------------
+extensions = [
     "sphinx_toolbox.more_autodoc.variables",
     "sphinx.ext.autosectionlabel",
     "sphinx.ext.autodoc",
@@ -19,37 +21,50 @@ extensions: list[str] = [
     "sphinx.ext.napoleon",
     "sphinx.ext.intersphinx",
     "sphinxext.opengraph",
+    # "sphinx_autodoc_typehints",
     "myst_parser",
     "sphinx_copybutton",
 ]
-overloads_location: str = "bottom"
-napoleon_google_docstring: bool = True
-autosectionlabel_prefix_document: bool = True
-napoleon_use_rtype: bool = False
-intersphinx_mapping: dict[str, tuple[str, None]] = {"httpx": ("https://www.python-httpx.org/", None)}
-ogp_site_url: str = "https://gloe.ideos.com.br/"
-ogp_image: str = "https://gloe.ideos.com.br/_static/assets/gloe-logo.png"
+overloads_location = "bottom"
+napoleon_google_docstring = True
+autosectionlabel_prefix_document = True
+napoleon_use_rtype = False
+intersphinx_mapping = {"httpx": ("https://www.python-httpx.org/", None)}
+ogp_site_url = "https://gloe.ideos.com.br/"
+ogp_image = "https://gloe.ideos.com.br/_static/assets/gloe-logo.png"
 
-templates_path: list[str] = ["_templates"]
-exclude_patterns: list[str] = ["Thumbs.db", ".DS_Store"]
-autodoc_typehints: str = "description"
-autodoc_type_aliases: dict[str, str] = {
+templates_path = ["_templates"]
+exclude_patterns = ["Thumbs.db", ".DS_Store"]
+autodoc_typehints = "description"
+autodoc_type_aliases = {
     "PreviousTransformer": "gloe.base_transformer.PreviousTransformer"
 }
 
-html_title: str = "Gloe"
-html_theme: str = "furo"
-html_last_updated_fmt: str = ""
-html_sidebars: dict[str, list[str]] = {
+# -- Options for HTML output -------------------------------------------------
+html_title = "Gloe"
+# html_logo = "assets/gloe-logo-small.png"
+html_theme = "furo"
+html_last_updated_fmt = ""
+# html_use_index = False  # Don't create index
+# html_domain_indices = False  # Don't need module indices
+# html_copy_source = False  # Don't need sources
+html_sidebars = {
     "Home": ["/"],
 }
 
-html_static_path: list[str] = ["_static"]
-html_css_files: list[str] = ["theme_customs.css"]
-html_favicon: str = "_static/assets/favicon.ico"
-html_theme_options: dict[str, dict[str, str] | list[dict[str, str]]] = {
+html_static_path = ["_static"]
+html_css_files = ["theme_customs.css"]
+html_favicon = "_static/assets/favicon.ico"
+html_theme_options = {
     "light_logo": "assets/gloe-logo-small.png",
     "dark_logo": "assets/gloe-logo-small.png",
+    "light_css_variables": {
+        "color-brand-primary": "#00e6bf",
+        "color-brand-content": "#00e6bf",
+        "font-stack": "Roboto, sans-serif",
+        "font-stack--monospace": "Courier, monospace",
+        "font-size--normal": "Courier, monospace",
+    },
     "dark_css_variables": {
         "color-brand-primary": "#00e6bf",
         "color-brand-content": "#00e6bf",
@@ -71,4 +86,5 @@ html_theme_options: dict[str, dict[str, str] | list[dict[str, str]]] = {
     ],
 }
 
-pygments_style: str = "styles.GloeLightStyle"
+pygments_dark_style = "styles.GloeDarkStyle"
+pygments_light_style = "styles.GloeLightStyle"
