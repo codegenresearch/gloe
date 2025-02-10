@@ -1,7 +1,7 @@
 import asyncio
 import unittest
 from typing import TypeVar, Any
-from gloe import async_transformer, ensure, partial_async_transformer, UnsupportedTransformerArgException, transformer
+from gloe import async_transformer, ensure, partial_async_transformer, UnsupportedTransformerArgException
 from gloe.utils import forward
 
 _In = TypeVar("_In")
@@ -16,14 +16,13 @@ async def request_data(url: str) -> dict[str, str]:
 class HasNotBarKey(Exception):
     pass
 
-def has_bar_key(d: dict[str, str]):
-    if "bar" not in d.keys():
+def has_bar_key(d: dict[str, str]) -> None:
+    if "bar" not in d:
         raise HasNotBarKey()
 
-def is_string(data: Any) -> bool:
+def is_string(data: Any) -> None:
     if not isinstance(data, str):
         raise ValueError("Data is not a string")
-    return True
 
 _URL = "http://my-service"
 
@@ -80,7 +79,7 @@ class TestAsyncTransformer(unittest.IsolatedAsyncioTestCase):
         with self.assertRaises(HasNotBarKey):
             await pipeline(_URL)
 
-    def test_unsupported_argument(self):
+    def test_unsupported_transformer_argument(self):
         def just_a_normal_function():
             return None
 
