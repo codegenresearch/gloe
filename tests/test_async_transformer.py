@@ -25,9 +25,36 @@ class HasNotBarKey(Exception):
     pass
 
 
+class HasNotFooKey(Exception):
+    pass
+
+
+class HasFooKey(Exception):
+    pass
+
+
+class IsNotInt(Exception):
+    pass
+
+
 def has_bar_key(data: dict[str, str]):
-    if "bar" not in data:
+    if "bar" not in data.keys():
         raise HasNotBarKey()
+
+
+def has_foo_key(data: dict[str, str]):
+    if "foo" not in data.keys():
+        raise HasNotFooKey()
+
+
+def foo_key_removed(data: dict[str, str]):
+    if "foo" in data.keys():
+        raise HasFooKey()
+
+
+def is_int(data: Any):
+    if not isinstance(data, int):
+        raise IsNotInt()
 
 
 def is_string(data: Any):
@@ -94,6 +121,28 @@ class TestAsyncTransformer(unittest.IsolatedAsyncioTestCase):
         with self.assertRaises(HasNotBarKey):
             await pipeline(_URL)
 
+        @ensure(incoming=[is_string], outcome=[has_foo_key])
+        @async_transformer
+        async def ensured_request_with_foo(url: str) -> dict[str, str]:
+            await asyncio.sleep(0.1)
+            return _DATA
+
+        pipeline = ensured_request_with_foo >> forward()
+
+        with self.assertRaises(HasFooKey):
+            await pipeline(_URL)
+
+        @ensure(incoming=[is_int], outcome=[has_bar_key])
+        @async_transformer
+        async def ensured_request_with_int(url: int) -> dict[str, str]:
+            await asyncio.sleep(0.1)
+            return _DATA
+
+        pipeline = ensured_request_with_int >> forward()
+
+        with self.assertRaises(IsNotInt):
+            await pipeline(_URL)
+
     async def test_ensure_partial_async_transformer(self):
         @ensure(incoming=[is_string], outcome=[has_bar_key])
         @partial_async_transformer
@@ -135,9 +184,6 @@ class TestAsyncTransformer(unittest.IsolatedAsyncioTestCase):
         result = await pipeline(_URL)
         self.assertEqual(result, _DATA)
 
-    # The following methods are not implemented and are placeholders for future implementation.
-    # They are kept for code coverage and to indicate areas that need development.
-
     async def test_unimplemented_feature_1(self):
         """
         TODO: Implement this test case to cover the unimplemented feature 1.
@@ -149,3 +195,35 @@ class TestAsyncTransformer(unittest.IsolatedAsyncioTestCase):
         TODO: Implement this test case to cover the unimplemented feature 2.
         """
         pass
+
+    async def test_transformer_wrong_signature(self):
+        with self.assertWarns(RuntimeWarning):
+
+            @transformer  # type: ignore
+            def many_args(arg1: str, arg2: int):
+                return arg1, arg2
+
+    async def test_integer_input(self):
+        @ensure(incoming=[is_int], outcome=[has_bar_key])
+        @async_transformer
+        async def int_request(num: int) -> dict[str, str]:
+            await asyncio.sleep(0.1)
+            return _DATA
+
+        pipeline = int_request >> forward()
+
+        with self.assertRaises(IsNotInt):
+            await pipeline(_URL)
+
+    async def test_foo_key_handling(self):
+        @ensure(outcome=[foo_key_removed])
+        @async_transformer
+        async def remove_foo(data: dict[str, str]) -> dict[str, str]:
+            await asyncio.sleep(0.1)
+            data.pop("foo", None)
+            return data
+
+        pipeline = request_data >> remove_foo >> forward()
+
+        with self.assertRaises(HasFooKey):
+            await pipeline(_URL)
