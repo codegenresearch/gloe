@@ -151,7 +151,7 @@ class Transformer(BaseTransformer[I, O, "Transformer"], ABC):
         if transform_exception is not None:
             raise transform_exception.internal_exception
 
-        if type(transformed) is not None:
+        if transformed is not None:
             return cast(O, transformed)
 
         raise NotImplementedError("Transform method did not return a value")  # pragma: no cover
@@ -163,6 +163,9 @@ class Transformer(BaseTransformer[I, O, "Transformer"], ABC):
         if origin is None:
             if isinstance(type_, TypeVar):
                 # If type_ is a TypeVar, we assume it's valid
+                return True
+            # Allow int to be treated as float
+            if type_ is float and isinstance(value, int):
                 return True
             return isinstance(value, type_)
         elif origin is Union:
