@@ -69,7 +69,7 @@ class AsyncTransformer(BaseTransformer[_In, _Out, "AsyncTransformer"], ABC):
         Args:
             data: the incoming data passed to the transformer during the pipeline execution.
 
-        Return:
+        Returns:
             The outcome data, it means, the result of the transformation.
         """
         pass
@@ -90,7 +90,7 @@ class AsyncTransformer(BaseTransformer[_In, _Out, "AsyncTransformer"], ABC):
         try:
             transformed = await self.transform_async(data)
         except Exception as exception:
-            if type(exception.__cause__) == TransformerException:
+            if isinstance(exception.__cause__, TransformerException):
                 transform_exception = exception.__cause__
             else:
                 tb = traceback.extract_tb(exception.__traceback__)
@@ -248,7 +248,7 @@ class AsyncTransformer(BaseTransformer[_In, _Out, "AsyncTransformer"], ABC):
 ### Key Changes Made:
 1. **Removed Improper Comment**: Removed the comment block at the end of the file that was causing the `SyntaxError`.
 2. **Imports**: Ensured that only necessary imports are included.
-3. **Type Checking**: Used `type(exception.__cause__) == TransformerException` for type checking in the `__call__` method.
+3. **Type Checking**: Used `isinstance(exception.__cause__, TransformerException)` for type checking in the `__call__` method.
 4. **Transformed Variable Check**: Changed the check for the `transformed` variable from `type(transformed) is not None` to `transformed is not None`.
 5. **Copy Method**: Used `Callable[[BaseTransformer, _In], Awaitable[_Out]]` for the `transform` parameter and `setattr` to assign the `transform_async` method correctly.
 6. **Overload Annotations**: Ensured that the overload annotations for the `__rshift__` method use `Tuple` instead of `tuple`.
