@@ -9,6 +9,7 @@ from gloe import (
     AsyncTransformer,
     TransformerException,
 )
+from gloe.async_transformer import _execute_async_flow
 from gloe.functional import partial_async_transformer
 from gloe.utils import forward
 
@@ -53,7 +54,7 @@ def has_bar_key(data: dict[str, str]):
 
 def has_foo_key(data: dict[str, str]):
     if "foo" not in data.keys():
-        raise HasNotBarKey()
+        raise HasNotFooKey()
 
 def is_int(data: Any):
     if type(data) is not int:
@@ -68,9 +69,6 @@ def foo_key_removed(incoming: dict[str, str], outcome: dict[str, str]):
         raise HasNotFooKey()
     if "foo" in outcome.keys():
         raise HasFooKey()
-
-async def _execute_async_flow(flow, _):
-    raise NotImplementedError()
 
 class TestAsyncTransformer(unittest.IsolatedAsyncioTestCase):
     async def test_basic_case(self):
