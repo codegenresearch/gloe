@@ -4,7 +4,7 @@ import types
 import uuid
 from abc import abstractmethod, ABC
 from inspect import Signature
-from typing import TypeVar, overload, cast, Any, Callable, Awaitable, get_origin, get_args
+from typing import TypeVar, overload, cast, Any, Callable, Awaitable, get_origin, get_args, Union
 
 from gloe.base_transformer import (
     TransformerException,
@@ -66,7 +66,7 @@ class AsyncTransformer(BaseTransformer[_In, _Out, "AsyncTransformer"], ABC):
         try:
             transformed = await self.transform_async(data)
         except Exception as exception:
-            if type(exception.__cause__) is TransformerException:
+            if type(exception.__cause__) == TransformerException:
                 transform_exception = exception.__cause__
             else:
                 tb = traceback.extract_tb(exception.__traceback__)
@@ -100,7 +100,7 @@ class AsyncTransformer(BaseTransformer[_In, _Out, "AsyncTransformer"], ABC):
         if transform_exception is not None:
             raise transform_exception.internal_exception
 
-        if transformed is not None:
+        if type(transformed) is not None:
             return cast(_Out, transformed)
 
         raise NotImplementedError  # pragma: no cover
