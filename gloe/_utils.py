@@ -1,13 +1,8 @@
 from functools import wraps
-from types import GenericAlias
+from types import GenericAlias, _GenericAlias
 from typing import (
     TypeVar,
     get_origin,
-    TypeAlias,
-    TypedDict,
-    Generic,
-    Union,
-    _GenericAlias,
     ParamSpec,
     Callable,
     Awaitable,
@@ -15,14 +10,6 @@ from typing import (
     Any,
 )
 import inspect
-
-
-class TypeMismatchError(Exception):
-    """Exception raised when there is a type mismatch."""
-    def __init__(self, generic, specific):
-        self.generic = generic
-        self.specific = specific
-        super().__init__(f"Type {generic} does not match with {specific}")
 
 
 def _format_tuple(
@@ -103,28 +90,22 @@ def _match_types(generic, specific, ignore_mismatches=True):
     ):
         if ignore_mismatches:
             return {}
-        raise TypeMismatchError(generic, specific)
+        raise TypeError(f"Type {generic} does not match with {specific}")
 
     generic_args = getattr(generic, "__args__", None)
     specific_args = getattr(specific, "__args__", None)
 
-    if specific_args is None and specific_args is None:
-        return {}
-
-    if generic_args is None:
+    if specific_args is None or generic_args is None:
         if ignore_mismatches:
             return {}
-        raise TypeMismatchError(generic, specific)
-
-    if specific_args is None:
-        if ignore_mismatches:
-            return {}
-        raise TypeMismatchError(generic, specific)
+        raise TypeError(f"Type {generic} or {specific} has no arguments")
 
     if len(generic_args) != len(specific_args):
         if ignore_mismatches:
             return {}
-        raise TypeMismatchError(generic, specific)
+        raise TypeError(
+            f"Number of arguments of type {generic} is different in specific type"
+        )
 
     matches = {}
     for generic_arg, specific_arg in zip(generic_args, specific_args):
