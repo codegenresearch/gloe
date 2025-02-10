@@ -9,7 +9,6 @@ from typing import (
     Any,
     TypeAlias,
     Union,
-    tuple as TupleType,  # Use tuple instead of Tuple for type hinting
 )
 
 from gloe.base_transformer import BaseTransformer, TransformerException
@@ -32,48 +31,48 @@ AT: TypeAlias = AsyncTransformer
 BT: TypeAlias = BaseTransformer[I, O, Any]
 
 AsyncNext2 = Union[
-    TupleType[AT[O, O1], BT[O, O2]],
-    TupleType[BT[O, O1], AT[O, O2]],
+    tuple[AT[O, O1], BT[O, O2]],
+    tuple[BT[O, O1], AT[O, O2]],
 ]
 
 AsyncNext3 = Union[
-    TupleType[AT[O, O1], BT[O, O2], BT[O, O3]],
-    TupleType[BT[O, O1], AT[O, O2], BT[O, O3]],
-    TupleType[BT[O, O1], BT[O, O2], AT[O, O3]],
+    tuple[AT[O, O1], BT[O, O2], BT[O, O3]],
+    tuple[BT[O, O1], AT[O, O2], BT[O, O3]],
+    tuple[BT[O, O1], BT[O, O2], AT[O, O3]],
 ]
 
 AsyncNext4 = Union[
-    TupleType[AT[O, O1], BT[O, O2], BT[O, O3], BT[O, O4]],
-    TupleType[BT[O, O1], AT[O, O2], BT[O, O3], BT[O, O4]],
-    TupleType[BT[O, O1], BT[O, O2], AT[O, O3], BT[O, O4]],
-    TupleType[BT[O, O1], BT[O, O2], BT[O, O3], AT[O, O4]],
+    tuple[AT[O, O1], BT[O, O2], BT[O, O3], BT[O, O4]],
+    tuple[BT[O, O1], AT[O, O2], BT[O, O3], BT[O, O4]],
+    tuple[BT[O, O1], BT[O, O2], AT[O, O3], BT[O, O4]],
+    tuple[BT[O, O1], BT[O, O2], BT[O, O3], AT[O, O4]],
 ]
 
 AsyncNext5 = Union[
-    TupleType[AT[O, O1], BT[O, O2], BT[O, O3], BT[O, O4], BT[O, O5]],
-    TupleType[BT[O, O1], AT[O, O2], BT[O, O3], BT[O, O4], BT[O, O5]],
-    TupleType[BT[O, O1], BT[O, O2], AT[O, O3], BT[O, O4], BT[O, O5]],
-    TupleType[BT[O, O1], BT[O, O2], BT[O, O3], AT[O, O4], BT[O, O5]],
-    TupleType[BT[O, O1], BT[O, O2], BT[O, O3], BT[O, O4], AT[O, O5]],
+    tuple[AT[O, O1], BT[O, O2], BT[O, O3], BT[O, O4], BT[O, O5]],
+    tuple[BT[O, O1], AT[O, O2], BT[O, O3], BT[O, O4], BT[O, O5]],
+    tuple[BT[O, O1], BT[O, O2], AT[O, O3], BT[O, O4], BT[O, O5]],
+    tuple[BT[O, O1], BT[O, O2], BT[O, O3], AT[O, O4], BT[O, O5]],
+    tuple[BT[O, O1], BT[O, O2], BT[O, O3], BT[O, O4], AT[O, O5]],
 ]
 
 AsyncNext6 = Union[
-    TupleType[AT[O, O1], BT[O, O2], BT[O, O3], BT[O, O4], BT[O, O5], BT[O, O6]],
-    TupleType[BT[O, O1], AT[O, O2], BT[O, O3], BT[O, O4], BT[O, O5], BT[O, O6]],
-    TupleType[BT[O, O1], BT[O, O2], AT[O, O3], BT[O, O4], BT[O, O5], BT[O, O6]],
-    TupleType[BT[O, O1], BT[O, O2], BT[O, O3], AT[O, O4], BT[O, O5], BT[O, O6]],
-    TupleType[BT[O, O1], BT[O, O2], BT[O, O3], BT[O, O4], AT[O, O5], BT[O, O6]],
-    TupleType[BT[O, O1], BT[O, O2], BT[O, O3], BT[O, O4], BT[O, O5], AT[O, O6]],
+    tuple[AT[O, O1], BT[O, O2], BT[O, O3], BT[O, O4], BT[O, O5], BT[O, O6]],
+    tuple[BT[O, O1], AT[O, O2], BT[O, O3], BT[O, O4], BT[O, O5], BT[O, O6]],
+    tuple[BT[O, O1], BT[O, O2], AT[O, O3], BT[O, O4], BT[O, O5], BT[O, O6]],
+    tuple[BT[O, O1], BT[O, O2], BT[O, O3], AT[O, O4], BT[O, O5], BT[O, O6]],
+    tuple[BT[O, O1], BT[O, O2], BT[O, O3], BT[O, O4], AT[O, O5], BT[O, O6]],
+    tuple[BT[O, O1], BT[O, O2], BT[O, O3], BT[O, O4], BT[O, O5], AT[O, O6]],
 ]
 
 AsyncNext7 = Union[
-    TupleType[AT[O, O1], BT[O, O2], BT[O, O3], BT[O, O4], BT[O, O5], BT[O, O6], BT[O, O7]],
-    TupleType[BT[O, O1], AT[O, O2], BT[O, O3], BT[O, O4], BT[O, O5], BT[O, O6], BT[O, O7]],
-    TupleType[BT[O, O1], BT[O, O2], AT[O, O3], BT[O, O4], BT[O, O5], BT[O, O6], BT[O, O7]],
-    TupleType[BT[O, O1], BT[O, O2], BT[O, O3], AT[O, O4], BT[O, O5], BT[O, O6], BT[O, O7]],
-    TupleType[BT[O, O1], BT[O, O2], BT[O, O3], BT[O, O4], AT[O, O5], BT[O, O6], BT[O, O7]],
-    TupleType[BT[O, O1], BT[O, O2], BT[O, O3], BT[O, O4], BT[O, O5], AT[O, O6], BT[O, O7]],
-    TupleType[BT[O, O1], BT[O, O2], BT[O, O3], BT[O, O4], BT[O, O5], BT[O, O6], AT[O, O7]],
+    tuple[AT[O, O1], BT[O, O2], BT[O, O3], BT[O, O4], BT[O, O5], BT[O, O6], BT[O, O7]],
+    tuple[BT[O, O1], AT[O, O2], BT[O, O3], BT[O, O4], BT[O, O5], BT[O, O6], BT[O, O7]],
+    tuple[BT[O, O1], BT[O, O2], AT[O, O3], BT[O, O4], BT[O, O5], BT[O, O6], BT[O, O7]],
+    tuple[BT[O, O1], BT[O, O2], BT[O, O3], AT[O, O4], BT[O, O5], BT[O, O6], BT[O, O7]],
+    tuple[BT[O, O1], BT[O, O2], BT[O, O3], BT[O, O4], AT[O, O5], BT[O, O6], BT[O, O7]],
+    tuple[BT[O, O1], BT[O, O2], BT[O, O3], BT[O, O4], BT[O, O5], AT[O, O6], BT[O, O7]],
+    tuple[BT[O, O1], BT[O, O2], BT[O, O3], BT[O, O4], BT[O, O5], BT[O, O6], AT[O, O7]],
 ]
 
 
@@ -149,7 +148,7 @@ class Transformer(BaseTransformer[I, O, "Transformer"], ABC):
         if transform_exception is not None:
             raise transform_exception.internal_exception
 
-        if transformed is not None:
+        if type(transformed) is not None:
             return cast(O, transformed)
 
         raise NotImplementedError("Transform method did not return a value")
@@ -157,44 +156,44 @@ class Transformer(BaseTransformer[I, O, "Transformer"], ABC):
     @overload
     def __rshift__(
         self,
-        next_node: TupleType["Tr[O, O1]", "Tr[O, O2]"],
-    ) -> "Tr[I, TupleType[O1, O2]]":
+        next_node: tuple["Tr[O, O1]", "Tr[O, O2]"],
+    ) -> "Tr[I, tuple[O1, O2]]":
         pass
 
     @overload
     def __rshift__(
         self,
-        next_node: TupleType["Tr[O, O1]", "Tr[O, O2]", "Tr[O, O3]"],
-    ) -> "Transformer[I, TupleType[O1, O2, O3]]":
+        next_node: tuple["Tr[O, O1]", "Tr[O, O2]", "Tr[O, O3]"],
+    ) -> "Transformer[I, tuple[O1, O2, O3]]":
         pass
 
     @overload
     def __rshift__(
         self,
-        next_node: TupleType["Tr[O, O1]", "Tr[O, O2]", "Tr[O, O3]", "Tr[O, O4]"],
-    ) -> "Tr[I, TupleType[O1, O2, O3, O4]]":
+        next_node: tuple["Tr[O, O1]", "Tr[O, O2]", "Tr[O, O3]", "Tr[O, O4]"],
+    ) -> "Tr[I, tuple[O1, O2, O3, O4]]":
         pass
 
     @overload
     def __rshift__(
         self,
-        next_node: TupleType["Tr[O, O1]", "Tr[O, O2]", "Tr[O, O3]", "Tr[O, O4]", "Tr[O, O5]"],
-    ) -> "Tr[I, TupleType[O1, O2, O3, O4, O5]]":
+        next_node: tuple["Tr[O, O1]", "Tr[O, O2]", "Tr[O, O3]", "Tr[O, O4]", "Tr[O, O5]"],
+    ) -> "Tr[I, tuple[O1, O2, O3, O4, O5]]":
         pass
 
     @overload
     def __rshift__(
         self,
-        next_node: TupleType[
+        next_node: tuple[
             "Tr[O, O1]", "Tr[O, O2]", "Tr[O, O3]", "Tr[O, O4]", "Tr[O, O5]", "Tr[O, O6]"
         ],
-    ) -> "Tr[I, TupleType[O1, O2, O3, O4, O5, O6]]":
+    ) -> "Tr[I, tuple[O1, O2, O3, O4, O5, O6]]":
         pass
 
     @overload
     def __rshift__(
         self,
-        next_node: TupleType[
+        next_node: tuple[
             "Tr[O, O1]",
             "Tr[O, O2]",
             "Tr[O, O3]",
@@ -203,7 +202,7 @@ class Transformer(BaseTransformer[I, O, "Transformer"], ABC):
             "Tr[O, O6]",
             "Tr[O, O7]",
         ],
-    ) -> "Tr[I, TupleType[O1, O2, O3, O4, O5, O6, O7]]":
+    ) -> "Tr[I, tuple[O1, O2, O3, O4, O5, O6, O7]]":
         pass
 
     @overload
@@ -218,42 +217,42 @@ class Transformer(BaseTransformer[I, O, "Transformer"], ABC):
     def __rshift__(
         self,
         next_node: AsyncNext2[O, O1, O2],
-    ) -> AsyncTransformer[I, TupleType[O1, O2]]:
+    ) -> AsyncTransformer[I, tuple[O1, O2]]:
         pass
 
     @overload
     def __rshift__(
         self,
         next_node: AsyncNext3[O, O1, O2, O3],
-    ) -> AsyncTransformer[I, TupleType[O1, O2, O3]]:
+    ) -> AsyncTransformer[I, tuple[O1, O2, O3]]:
         pass
 
     @overload
     def __rshift__(
         self,
         next_node: AsyncNext4[O, O1, O2, O3, O4],
-    ) -> AsyncTransformer[I, TupleType[O1, O2, O3, O4]]:
+    ) -> AsyncTransformer[I, tuple[O1, O2, O3, O4]]:
         pass
 
     @overload
     def __rshift__(
         self,
         next_node: AsyncNext5[O, O1, O2, O3, O4, O5],
-    ) -> AsyncTransformer[I, TupleType[O1, O2, O3, O4, O5]]:
+    ) -> AsyncTransformer[I, tuple[O1, O2, O3, O4, O5]]:
         pass
 
     @overload
     def __rshift__(
         self,
         next_node: AsyncNext6[O, O1, O2, O3, O4, O5, O6],
-    ) -> AsyncTransformer[I, TupleType[O1, O2, O3, O4, O5, O6]]:
+    ) -> AsyncTransformer[I, tuple[O1, O2, O3, O4, O5, O6]]:
         pass
 
     @overload
     def __rshift__(
         self,
         next_node: AsyncNext7[O, O1, O2, O3, O4, O5, O6, O7],
-    ) -> AsyncTransformer[I, TupleType[O1, O2, O3, O4, O5, O6, O7]]:
+    ) -> AsyncTransformer[I, tuple[O1, O2, O3, O4, O5, O6, O7]]:
         pass
 
     def __rshift__(self, next_node):
