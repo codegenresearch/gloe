@@ -5,8 +5,8 @@ from gloe import (
     Transformer,
     AsyncTransformer,
     async_transformer,
-    bridge,
 )
+from gloe.experimental import bridge
 from gloe.utils import forward
 from tests.lib.transformers import (
     square,
