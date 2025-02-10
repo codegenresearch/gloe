@@ -13,8 +13,8 @@ from pygments.token import (
 )
 
 
-class GloeStyle(Style):
-    name = "native"
+class GloeDarkStyle(Style):
+    name = "gloe-dark"
 
     background_color = "#202020"
     highlight_color = "#404040"
@@ -56,14 +56,46 @@ class GloeStyle(Style):
         Error: "bg:#e3d2d2 #a61717",
     }
 
-# Custom light theme CSS variables
-light_css_variables = {
-    "color-brand-primary": "#00afac",
-    "color-brand-content": "#00afac",
-    "font-stack": "Roboto, sans-serif",
-    "font-stack--monospace": "Courier, monospace",
-    "font-size--normal": "Courier, monospace",
-}
 
-# Switching to a different pygments style
-pygments_style = "monokai"
+class GloeLightStyle(Style):
+    name = "gloe-light"
+
+    background_color = "#ffffff"
+    highlight_color = "#e0e0e0"
+    line_number_color = "#333333"
+
+    styles = {
+        Token: "#333333",
+        Whitespace: "#999999",
+        Comment: "italic #666666",
+        Comment.Preproc: "noitalic bold #cc0000",
+        Comment.Special: "noitalic bold #cc0000 bg:#ffcccc",
+        Keyword: "bold #008800",
+        Keyword.Pseudo: "nobold",
+        Operator.Word: "bold #008800",
+        String: "#0066cc",
+        String.Other: "#0066cc",
+        Number: "#0000cc",
+        Name.Builtin: "#0066cc",
+        Name.Variable: "#0000cc",
+        Name.Constant: "#0000cc",
+        Name.Class: "underline #0066cc",
+        Name.Function: "#0066cc",
+        Name.Namespace: "underline #0066cc",
+        Name.Exception: "#cc0000",
+        Name.Tag: "bold #008800",
+        Name.Attribute: "#cc0000",
+        Name.Decorator: "#0066cc",
+        Generic.Heading: "bold #000000",
+        Generic.Subheading: "underline #000000",
+        Generic.Deleted: "#cc0000",
+        Generic.Inserted: "#00cc00",
+        Generic.Error: "#cc0000",
+        Generic.Emph: "italic",
+        Generic.Strong: "bold",
+        Generic.EmphStrong: "bold italic",
+        Generic.Prompt: "#333333",
+        Generic.Output: "#666666",
+        Generic.Traceback: "#cc0000",
+        Error: "bg:#ffcccc #cc0000",
+    }
