@@ -1,6 +1,8 @@
 import asyncio
-from typing import TypeVar, Any, cast, Tuple, Callable, Awaitable, Signature
+from typing import TypeVar, Any, cast, Tuple, Callable, Awaitable
 from types import MethodType
+from inspect import Signature
+from typing import GenericAlias
 
 from gloe.async_transformer import AsyncTransformer
 from gloe.base_transformer import BaseTransformer
@@ -13,7 +15,7 @@ _Out = TypeVar("_Out")
 _NextOut = TypeVar("_NextOut")
 
 def is_transformer(node):
-    if isinstance(node, (list, tuple)):
+    if type(node) == list or type(node) == tuple:
         return all(is_transformer(n) for n in node)
     return isinstance(node, Transformer)
 
@@ -57,7 +59,7 @@ def _nerge_serial(transformer1: BaseTransformer, _transformer2: BaseTransformer)
     output_generic_vars = _match_types(signature1.return_annotation, transformer2.input_type)
     generic_vars = {**input_generic_vars, **output_generic_vars}
 
-    def transformer1_signature(self) -> Signature:
+    def transformer1_signature(_) -> Signature:
         return signature1.replace(
             return_annotation=_specify_types(signature1.return_annotation, generic_vars)
         )
@@ -134,7 +136,7 @@ def _merge_diverging(incident_transformer: BaseTransformer, *receiving_transform
         )
         receiving_signatures.append(new_signature)
 
-        def _signature(self) -> Signature:
+        def _signature(_) -> Signature:
             return new_signature
 
         if receiving_transformer._previous == incident_transformer:
@@ -144,7 +146,7 @@ def _merge_diverging(incident_transformer: BaseTransformer, *receiving_transform
         def signature(self) -> Signature:
             receiving_signature_returns = [r.return_annotation for r in receiving_signatures]
             return incident_signature.replace(
-                return_annotation=Tuple[tuple(receiving_signature_returns)]
+                return_annotation=GenericAlias(Tuple, tuple(receiving_signature_returns))
             )
 
         def __len__(self) -> int:
