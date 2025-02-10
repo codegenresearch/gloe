@@ -15,6 +15,13 @@ from typing import (
 from gloe.async_transformer import AsyncTransformer
 from gloe.transformers import Transformer
 
+# :root {
+#     --background-color-light: #ffffff;
+#     --text-color-light: #000000;
+#     --background-color-dark: #121212;
+#     --text-color-dark: #ffffff;
+# }
+
 __all__ = [
     "transformer",
     "partial_transformer",
@@ -169,6 +176,10 @@ def partial_async_transformer(
 def transformer(func: Callable[[A], S]) -> Transformer[A, S]:
     """
     Convert a callable to an instance of the Transformer class.
+
+    See Also:
+        The most common usage is as a decorator. This example demonstrates how to use the
+        `@transformer` decorator to filter a list of users::
 
     Example:
         The most common use is as a decorator::
