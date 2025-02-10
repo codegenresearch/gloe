@@ -16,7 +16,6 @@ from typing import (
     get_origin,
     TypeAlias,
     Type,
-    Optional,
 )
 from uuid import UUID
 from itertools import groupby
@@ -35,7 +34,12 @@ _Self = TypeVar("_Self", bound="BaseTransformer")
 PreviousTransformer: TypeAlias = Union[
     None,
     _Self,
-    tuple[_Self, ...],
+    tuple[_Self, _Self],
+    tuple[_Self, _Self, _Self],
+    tuple[_Self, _Self, _Self, _Self],
+    tuple[_Self, _Self, _Self, _Self, _Self],
+    tuple[_Self, _Self, _Self, _Self, _Self, _Self],
+    tuple[_Self, _Self, _Self, _Self, _Self, _Self, _Self],
 ]
 
 
@@ -44,7 +48,7 @@ class TransformerException(Exception):
         self,
         internal_exception: Exception,
         raiser_transformer: "BaseTransformer",
-        message: Optional[str] = None,
+        message: str | None = None,
     ):
         self.internal_exception = internal_exception
         self.raiser_transformer = raiser_transformer
@@ -106,7 +110,7 @@ class BaseTransformer(Generic[_In, _Out]):
 
     def copy(
         self,
-        transform: Optional[Callable[[_In], _Out]] = None,
+        transform: Callable[[_In], _Out] | None = None,
         regenerate_instance_id: bool = False,
     ) -> "BaseTransformer":
         """Creates a copy of the transformer with optional modifications."""
@@ -305,7 +309,7 @@ class BaseTransformer(Generic[_In, _Out]):
     def _dag(
         self,
         net: DiGraph,
-        next_node: Optional["BaseTransformer"] = None,
+        next_node: "BaseTransformer" | None = None,
         custom_data: dict[str, Any] = {},
     ):
         """Constructs the directed acyclic graph (DAG)."""
