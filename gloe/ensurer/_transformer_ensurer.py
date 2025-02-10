@@ -85,19 +85,19 @@ class _ensure_base:
     @overload
     def __call__(self, transformer_init: _PartialAsyncTransformer[_T, _P1, _U]) -> _PartialAsyncTransformer[_T, _P1, _U]: pass
 
-    def __call__(self, arg):
-        if isinstance(arg, Transformer):
-            return self._generate_new_transformer(arg)
-        if isinstance(arg, AsyncTransformer):
-            return self._generate_new_async_transformer(arg)
-        if isinstance(arg, _PartialTransformer):
+    def __call__(self, transformer_init):
+        if isinstance(transformer_init, Transformer):
+            return self._generate_new_transformer(transformer_init)
+        if isinstance(transformer_init, AsyncTransformer):
+            return self._generate_new_async_transformer(transformer_init)
+        if isinstance(transformer_init, _PartialTransformer):
             def ensured_transformer_init(*args, **kwargs):
-                transformer = arg(*args, **kwargs)
+                transformer = transformer_init(*args, **kwargs)
                 return self._generate_new_transformer(transformer)
             return ensured_transformer_init
-        if isinstance(arg, _PartialAsyncTransformer):
+        if isinstance(transformer_init, _PartialAsyncTransformer):
             def ensured_async_transformer_init(*args, **kwargs):
-                async_transformer = arg(*args, **kwargs)
+                async_transformer = transformer_init(*args, **kwargs)
                 return self._generate_new_async_transformer(async_transformer)
             return ensured_async_transformer_init
 
