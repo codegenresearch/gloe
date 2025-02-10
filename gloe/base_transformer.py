@@ -39,17 +39,20 @@ _Out7 = TypeVar("_Out7")
 
 PreviousTransformer: TypeAlias = Union[
     None,
-    _Self,
-    tuple[_Self, _Self],
-    tuple[_Self, _Self, _Self],
-    tuple[_Self, _Self, _Self, _Self],
-    tuple[_Self, _Self, _Self, _Self, _Self],
-    tuple[_Self, _Self, _Self, _Self, _Self, _Self],
-    tuple[_Self, _Self, _Self, _Self, _Self, _Self, _Self],
+    "BaseTransformer",
+    tuple["BaseTransformer", ...],
 ]
 
 
 class TransformerException(Exception):
+    """Exception raised for errors in the transformer process.
+
+    Attributes:
+        internal_exception -- the original exception that was raised
+        raiser_transformer -- the transformer that raised the exception
+        message -- explanation of the error
+    """
+
     def __init__(self, internal_exception: Union["TransformerException", Exception], raiser_transformer: "BaseTransformer", message: str | None = None):
         if not isinstance(internal_exception, (TransformerException, Exception)):
             raise TypeError("internal_exception must be an instance of TransformerException or Exception")
@@ -62,12 +65,25 @@ class TransformerException(Exception):
         super().__init__(message)
 
     @property
-    def internal_exception(self):
+    def internal_exception(self) -> Exception:
         """Returns the internal exception with traceback."""
         return self._internal_exception.with_traceback(self._traceback)
 
 
 class BaseTransformer(Generic[_In, _Out, _Self]):
+    """Base class for all transformers.
+
+    Attributes:
+        _previous -- the previous transformer(s) in the chain
+        _children -- the child transformers
+        _invisible -- whether the transformer is invisible in the graph
+        id -- unique identifier for the transformer
+        instance_id -- unique instance identifier for the transformer
+        _label -- label for the transformer in the graph
+        _graph_node_props -- properties for the transformer's graph node
+        events -- list of events associated with the transformer
+    """
+
     def __init__(self):
         self._previous: PreviousTransformer = None
         self._children: list["BaseTransformer"] = []
@@ -107,14 +123,22 @@ class BaseTransformer(Generic[_In, _Out, _Self]):
         """Returns the hash of the transformer's ID."""
         return hash(self.id)
 
-    def __eq__(self, other):
+    def __eq__(self, other) -> bool:
         """Checks equality based on the transformer's ID."""
         if isinstance(other, BaseTransformer):
             return self.id == other.id
         return NotImplemented
 
     def copy(self, transform: Callable[[_Self, _In], _Out] | None = None, regenerate_instance_id: bool = False) -> _Self:
-        """Creates a copy of the transformer with optional modifications."""
+        """Creates a copy of the transformer with optional modifications.
+
+        Args:
+            transform -- an optional transformation function to apply
+            regenerate_instance_id -- whether to regenerate the instance ID
+
+        Returns:
+            A copy of the transformer.
+        """
         if transform is not None and not callable(transform):
             raise TypeError("transform must be callable or None")
         if not isinstance(regenerate_instance_id, bool):
@@ -127,7 +151,7 @@ class BaseTransformer(Generic[_In, _Out, _Self]):
             copied.instance_id = uuid.uuid4()
         if self.previous is not None:
             if type(self.previous) == tuple:
-                new_previous = tuple(previous_transformer.copy() for previous_transformer in self.previous)
+                new_previous = tuple(prev.copy() for prev in self.previous)
                 copied._previous = cast(PreviousTransformer, new_previous)
             elif isinstance(self.previous, BaseTransformer):
                 copied._previous = self.previous.copy()
@@ -149,14 +173,18 @@ class BaseTransformer(Generic[_In, _Out, _Self]):
         return nodes
 
     def _set_previous(self, previous: PreviousTransformer):
-        """Sets the previous transformer."""
+        """Sets the previous transformer.
+
+        Args:
+            previous -- the previous transformer(s) to set
+        """
         if not isinstance(previous, (type(None), BaseTransformer, tuple)):
             raise TypeError("previous must be None, BaseTransformer, or a tuple of BaseTransformers")
         if self.previous is None:
             self._previous = previous
         elif type(self.previous) == tuple:
-            for previous_transformer in self.previous:
-                previous_transformer._set_previous(previous)
+            for prev in self.previous:
+                prev._set_previous(previous)
         elif isinstance(self.previous, BaseTransformer):
             self.previous._set_previous(previous)
 
@@ -165,7 +193,14 @@ class BaseTransformer(Generic[_In, _Out, _Self]):
         return self._signature(type(self))
 
     def _signature(self, klass: Type) -> Signature:
-        """Generates the signature for the transformer."""
+        """Generates the signature for the transformer.
+
+        Args:
+            klass -- the class type to generate the signature for
+
+        Returns:
+            The signature of the transformer.
+        """
         if not isinstance(klass, type):
             raise TypeError("klass must be a type")
         orig_bases = getattr(self, "__orig_bases__", [])
@@ -209,8 +244,16 @@ class BaseTransformer(Generic[_In, _Out, _Self]):
         """Returns the input annotation of the transformer."""
         return self.input_type.__name__
 
-    def _add_net_node(self, net: Graph, custom_data: dict[str, Any] = {}):
-        """Adds a node to the network graph."""
+    def _add_net_node(self, net: Graph, custom_data: dict[str, Any] = {}) -> str:
+        """Adds a node to the network graph.
+
+        Args:
+            net -- the network graph to add the node to
+            custom_data -- additional data for the node
+
+        Returns:
+            The node ID of the added node.
+        """
         if not isinstance(net, Graph):
             raise TypeError("net must be an instance of Graph")
         if not isinstance(custom_data, dict):
@@ -224,7 +267,14 @@ class BaseTransformer(Generic[_In, _Out, _Self]):
         return node_id
 
     def _add_child_node(self, child: "BaseTransformer", child_net: DiGraph, parent_id: str, next_node: "BaseTransformer"):
-        """Adds a child node to the network graph."""
+        """Adds a child node to the network graph.
+
+        Args:
+            child -- the child transformer to add
+            child_net -- the network graph for the child
+            parent_id -- the ID of the parent node
+            next_node -- the next transformer in the chain
+        """
         if not isinstance(child, BaseTransformer):
             raise TypeError("child must be an instance of BaseTransformer")
         if not isinstance(child_net, DiGraph):
@@ -256,7 +306,12 @@ class BaseTransformer(Generic[_In, _Out, _Self]):
         return previous
 
     def _add_children_subgraph(self, net: DiGraph, next_node: "BaseTransformer"):
-        """Adds a children subgraph to the network graph."""
+        """Adds a children subgraph to the network graph.
+
+        Args:
+            net -- the network graph to add the subgraph to
+            next_node -- the next transformer in the chain
+        """
         if not isinstance(net, DiGraph):
             raise TypeError("net must be an instance of DiGraph")
         if not isinstance(next_node, BaseTransformer):
@@ -283,7 +338,13 @@ class BaseTransformer(Generic[_In, _Out, _Self]):
                 net.add_edge(child_final_node, next_node_id, label=next_node.input_annotation)
 
     def _dag(self, net: DiGraph, next_node: Union["BaseTransformer", None] = None, custom_data: dict[str, Any] = {}):
-        """Generates the directed acyclic graph for the transformer."""
+        """Generates the directed acyclic graph for the transformer.
+
+        Args:
+            net -- the network graph to generate the DAG for
+            next_node -- the next transformer in the chain
+            custom_data -- additional data for the graph
+        """
         if not isinstance(net, DiGraph):
             raise TypeError("net must be an instance of DiGraph")
         if next_node is not None and not isinstance(next_node, BaseTransformer):
@@ -325,14 +386,23 @@ class BaseTransformer(Generic[_In, _Out, _Self]):
             self._add_children_subgraph(net, next_node)
 
     def graph(self) -> DiGraph:
-        """Generates the graph for the transformer."""
+        """Generates the graph for the transformer.
+
+        Returns:
+            The generated graph.
+        """
         net = nx.DiGraph()
         net.graph["splines"] = "ortho"
         self._dag(net)
         return net
 
     def export(self, path: str, with_edge_labels: bool = True):
-        """Exports the graph to a file."""
+        """Exports the graph to a file.
+
+        Args:
+            path -- the file path to export the graph to
+            with_edge_labels -- whether to include edge labels in the export
+        """
         if not isinstance(path, str):
             raise TypeError("path must be a string")
         if not isinstance(with_edge_labels, bool):
@@ -352,6 +422,6 @@ class BaseTransformer(Generic[_In, _Out, _Self]):
                 agraph.add_subgraph(node_ids, label=label, name=f"cluster_{parent_id}", style="dotted")
         agraph.write(path)
 
-    def __len__(self):
+    def __len__(self) -> int:
         """Returns the length of the transformer."""
         return 1
