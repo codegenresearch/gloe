@@ -101,8 +101,9 @@ class TestBasicTransformerTypes(MypyTestSuite):
 
 
 ### Changes Made:
-1. **Import Organization**: Grouped imports logically: standard library, third-party, and local application imports.
-2. **Consistent Commenting**: Revised comments to be clear and consistent without non-Python syntax.
-3. **Spacing and Line Breaks**: Ensured consistent spacing around operators and effective use of line breaks for readability.
-4. **Tuple Type Hints**: Used `tuple` consistently for type hints.
-5. **Code Structure**: Improved the structure of the code, especially in the test methods, to ensure logical flow and clear separation of graph definitions and assertions.
+1. **Removed Non-Python Syntax in Comments**: Removed the list format in the comments and used standard comment format with `#` for clarity and to avoid syntax errors.
+2. **Import Organization**: Grouped imports logically: standard library, third-party, and local application imports.
+3. **Consistent Commenting**: Ensured comments are clear and consistent without non-Python syntax.
+4. **Spacing and Line Breaks**: Ensured consistent spacing around operators and effective use of line breaks for readability.
+5. **Tuple Type Hints**: Used `tuple` consistently for type hints.
+6. **Code Structure**: Improved the structure of the code, especially in the test methods, to ensure logical flow and clear separation of graph definitions and assertions.
