@@ -32,20 +32,61 @@ O = TypeVar("O")
 
 class _PartialTransformer(Generic[A, P1, S]):
     def __init__(self, func: Callable[Concatenate[A, P1], S]):
+        """
+        Internal class to facilitate the creation of partial transformers.
+
+        Args:
+            func: A callable that takes a primary argument of type `A` and additional
+                arguments specified by `P1`, returning a result of type `S`.
+        """
         self.func = func
 
     def __call__(self, *args: P1.args, **kwargs: P1.kwargs) -> Transformer[A, S]:
+        """
+        Create a partial transformer by pre-applying some arguments to the function.
+
+        Args:
+            *args: Positional arguments to pre-apply.
+            **kwargs: Keyword arguments to pre-apply.
+
+        Returns:
+            An instance of the `Transformer` class with pre-applied arguments.
+        """
         func = self.func
         func_signature = inspect.signature(func)
 
         class LambdaTransformer(Transformer[A, S]):
+            """
+            Transformer class created from a partial function application.
+
+            Args:
+                data: The primary input data of type `A`.
+
+            Returns:
+                The result of the function application of type `S`.
+            """
             __doc__ = func.__doc__
             __annotations__ = cast(FunctionType, func).__annotations__
 
             def signature(self) -> Signature:
+                """
+                Get the signature of the underlying function.
+
+                Returns:
+                    The signature of the function.
+                """
                 return func_signature
 
             def transform(self, data: A) -> S:
+                """
+                Apply the function to the input data with pre-applied arguments.
+
+                Args:
+                    data: The primary input data of type `A`.
+
+                Returns:
+                    The result of the function application of type `S`.
+                """
                 return func(data, *args, **kwargs)
 
         lambda_transformer = LambdaTransformer()
@@ -58,10 +99,14 @@ def partial_transformer(
     func: Callable[Concatenate[A, P1], S]
 ) -> _PartialTransformer[A, P1, S]:
     """
-    This decorator allows the creation of partial transformers, which are transformers that
-    enable partial application of their arguments. This is particularly useful for creating
-    configurable transformer instances where some arguments are preset, enhancing modularity
-    and reusability in data processing pipelines.
+    Decorator to create partial transformers, which are transformers that allow for
+    partial application of their arguments. This capability is particularly useful for
+    creating configurable transformer instances where some arguments are preset, enhancing
+    modularity and reusability in data processing pipelines.
+
+    See Also:
+        For further details on partial transformers and their applications, see
+        :ref:`partial-transformers`.
 
     Example:
         Here's how to apply the `@partial_transformer` decorator to create a transformer
@@ -93,20 +138,61 @@ def partial_transformer(
 
 class _PartialAsyncTransformer(Generic[A, P1, S]):
     def __init__(self, func: Callable[Concatenate[A, P1], Awaitable[S]]):
+        """
+        Internal class to facilitate the creation of partial asynchronous transformers.
+
+        Args:
+            func: A callable that takes a primary argument of type `A` and additional
+                arguments specified by `P1`, returning an awaitable result of type `S`.
+        """
         self.func = func
 
     def __call__(self, *args: P1.args, **kwargs: P1.kwargs) -> AsyncTransformer[A, S]:
+        """
+        Create a partial asynchronous transformer by pre-applying some arguments to the function.
+
+        Args:
+            *args: Positional arguments to pre-apply.
+            **kwargs: Keyword arguments to pre-apply.
+
+        Returns:
+            An instance of the `AsyncTransformer` class with pre-applied arguments.
+        """
         func = self.func
         func_signature = inspect.signature(func)
 
         class LambdaTransformer(AsyncTransformer[A, S]):
+            """
+            Asynchronous transformer class created from a partial function application.
+
+            Args:
+                data: The primary input data of type `A`.
+
+            Returns:
+                The result of the function application of type `S`.
+            """
             __doc__ = func.__doc__
             __annotations__ = cast(FunctionType, func).__annotations__
 
             def signature(self) -> Signature:
+                """
+                Get the signature of the underlying function.
+
+                Returns:
+                    The signature of the function.
+                """
                 return func_signature
 
             async def transform_async(self, data: A) -> S:
+                """
+                Asynchronously apply the function to the input data with pre-applied arguments.
+
+                Args:
+                    data: The primary input data of type `A`.
+
+                Returns:
+                    The result of the function application of type `S`.
+                """
                 return await func(data, *args, **kwargs)
 
         lambda_transformer = LambdaTransformer()
@@ -119,10 +205,15 @@ def partial_async_transformer(
     func: Callable[Concatenate[A, P1], Awaitable[S]]
 ) -> _PartialAsyncTransformer[A, P1, S]:
     """
-    This decorator enables the creation of partial asynchronous transformers, which are
-    transformers capable of partial argument application. This is invaluable for crafting
-    reusable asynchronous transformer instances where certain arguments are predetermined,
-    enhancing both modularity and reusability within asynchronous data processing flows.
+    Decorator to enable the creation of partial asynchronous transformers, which are
+    transformers capable of partial argument application. Such functionality is invaluable
+    for crafting reusable asynchronous transformer instances where certain arguments are
+    predetermined, enhancing both modularity and reusability within asynchronous data
+    processing flows.
+
+    See Also:
+        For additional insights into partial asynchronous transformers and their practical
+        applications, consult :ref:`partial-async-transformers`.
 
     Example:
         Utilize the `@partial_async_transformer` decorator to build a transformer with
@@ -157,6 +248,10 @@ def transformer(func: Callable[[A], S]) -> Transformer[A, S]:
     """
     Convert a callable to an instance of the Transformer class.
 
+    See Also:
+        The most common usage is as a decorator. This example demonstrates how to use the
+        `@transformer` decorator to filter a list of users::
+
     Example:
         The most common use is as a decorator::
 
@@ -169,6 +264,7 @@ def transformer(func: Callable[[A], S]) -> Transformer[A, S]:
     Args:
         func: A callable that takes a single argument and returns a result. The callable
             should return an instance of the generic type :code:`S` specified.
+
     Returns:
         An instance of the Transformer class, encapsulating the transformation logic
         defined in the provided callable.
@@ -185,13 +281,37 @@ def transformer(func: Callable[[A], S]) -> Transformer[A, S]:
         )
 
     class LambdaTransformer(Transformer[A, S]):
+        """
+        Transformer class created from a function.
+
+        Args:
+            data: The primary input data of type `A`.
+
+        Returns:
+            The result of the function application of type `S`.
+        """
         __doc__ = func.__doc__
         __annotations__ = cast(FunctionType, func).__annotations__
 
         def signature(self) -> Signature:
+            """
+            Get the signature of the underlying function.
+
+            Returns:
+                The signature of the function.
+            """
             return func_signature
 
         def transform(self, data):
+            """
+            Apply the function to the input data.
+
+            Args:
+                data: The primary input data of type `A`.
+
+            Returns:
+                The result of the function application of type `S`.
+            """
             return func(data)
 
     lambda_transformer = LambdaTransformer()
@@ -204,6 +324,9 @@ def async_transformer(func: Callable[[A], Awaitable[S]]) -> AsyncTransformer[A, 
     """
     Convert a callable to an instance of the AsyncTransformer class.
 
+    See Also:
+        For more information about this feature, refer to the :ref:`async-transformers`.
+
     Example:
         The most common use is as a decorator::
 
@@ -215,6 +338,7 @@ def async_transformer(func: Callable[[A], Awaitable[S]]) -> AsyncTransformer[A, 
 
     Args:
         func: A callable that takes a single argument and returns a coroutine.
+
     Returns:
         Returns an instance of the AsyncTransformer class, representing the built async
         transformer.
@@ -231,13 +355,37 @@ def async_transformer(func: Callable[[A], Awaitable[S]]) -> AsyncTransformer[A, 
         )
 
     class LambdaAsyncTransformer(AsyncTransformer[A, S]):
+        """
+        Asynchronous transformer class created from a function.
+
+        Args:
+            data: The primary input data of type `A`.
+
+        Returns:
+            The result of the function application of type `S`.
+        """
         __doc__ = func.__doc__
         __annotations__ = cast(FunctionType, func).__annotations__
 
         def signature(self) -> Signature:
+            """
+            Get the signature of the underlying function.
+
+            Returns:
+                The signature of the function.
+            """
             return func_signature
 
         async def transform_async(self, data):
+            """
+            Asynchronously apply the function to the input data.
+
+            Args:
+                data: The primary input data of type `A`.
+
+            Returns:
+                The result of the function application of type `S`.
+            """
             return await func(data)
 
     lambda_transformer = LambdaAsyncTransformer()
