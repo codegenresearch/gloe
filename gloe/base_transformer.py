@@ -63,14 +63,14 @@ class TransformerException(Exception):
 
 class BaseTransformer(Generic[_In, _Out]):
     def __init__(self):
-        self._previous: PreviousTransformer = None
-        self._children: list["BaseTransformer"] = []
-        self._invisible: bool = False
-        self.id: UUID = uuid.uuid4()
-        self.instance_id: UUID = uuid.uuid4()
-        self._label: str = self.__class__.__name__
-        self._graph_node_props: dict[str, Any] = {"shape": "box"}
-        self.events: list[Any] = []
+        self._previous = None
+        self._children = []
+        self._invisible = False
+        self.id = uuid.uuid4()
+        self.instance_id = uuid.uuid4()
+        self._label = self.__class__.__name__
+        self._graph_node_props = {"shape": "box"}
+        self.events = []
 
     @property
     def label(self) -> str:
@@ -122,7 +122,7 @@ class BaseTransformer(Generic[_In, _Out]):
             copied.instance_id = uuid.uuid4()
 
         if self.previous is not None:
-            if type(self.previous) == tuple:
+            if isinstance(self.previous, tuple):
                 copied._previous = tuple(prev.copy() for prev in self.previous)
             else:
                 copied._previous = self.previous.copy()
@@ -137,7 +137,7 @@ class BaseTransformer(Generic[_In, _Out]):
         nodes = {self.instance_id: self}
 
         if self.previous is not None:
-            if type(self.previous) == tuple:
+            if isinstance(self.previous, tuple):
                 for prev in self.previous:
                     nodes.update(prev.graph_nodes)
             else:
@@ -152,7 +152,7 @@ class BaseTransformer(Generic[_In, _Out]):
         """Sets the previous transformer(s)."""
         if self.previous is None:
             self._previous = previous
-        elif type(self.previous) == tuple:
+        elif isinstance(self.previous, tuple):
             for prev in self.previous:
                 prev._set_previous(previous)
         else:
@@ -261,7 +261,7 @@ class BaseTransformer(Generic[_In, _Out]):
                 if previous.previous is None:
                     return previous
 
-                if type(previous.previous) == tuple:
+                if isinstance(previous.previous, tuple):
                     return previous.previous
 
                 return previous.visible_previous
@@ -285,7 +285,7 @@ class BaseTransformer(Generic[_In, _Out]):
             child_final_node = next(n for n, d in child_net.out_degree() if d == 0)
 
             if self.invisible:
-                if type(visible_previous) == tuple:
+                if isinstance(visible_previous, tuple):
                     for prev in visible_previous:
                         net.add_edge(
                             prev.node_id, child_root_node, label=prev.output_annotation
@@ -314,7 +314,7 @@ class BaseTransformer(Generic[_In, _Out]):
         """Constructs the directed acyclic graph (DAG)."""
         previous = self.previous
         if previous is not None:
-            if type(previous) == tuple:
+            if isinstance(previous, tuple):
                 if self.invisible and next_node is not None:
                     next_node_id = next_node._add_net_node(net)
                     _next_node = next_node
