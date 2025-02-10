@@ -24,24 +24,22 @@ __all__ = [
 
 A = TypeVar("A")
 S = TypeVar("S")
-S2 = TypeVar("S2")
-P1 = ParamSpec("P1")
-P2 = ParamSpec("P2")
+P = ParamSpec("P")
 O = TypeVar("O")
 
 
-class _PartialTransformer(Generic[A, P1, S]):
-    def __init__(self, func: Callable[Concatenate[A, P1], S]):
+class _PartialTransformer(Generic[A, P, S]):
+    def __init__(self, func: Callable[Concatenate[A, P], S]):
         """
-        Internal class to facilitate the creation of partial transformers.
+        Internal class to create partial transformers.
 
         Args:
             func: A callable that takes a primary argument of type `A` and additional
-                arguments specified by `P1`, returning a result of type `S`.
+                arguments specified by `P`, returning a result of type `S`.
         """
         self.func = func
 
-    def __call__(self, *args: P1.args, **kwargs: P1.kwargs) -> Transformer[A, S]:
+    def __call__(self, *args: P.args, **kwargs: P.kwargs) -> Transformer[A, S]:
         """
         Create a partial transformer by pre-applying some arguments to the function.
 
@@ -96,17 +94,12 @@ class _PartialTransformer(Generic[A, P1, S]):
 
 
 def partial_transformer(
-    func: Callable[Concatenate[A, P1], S]
-) -> _PartialTransformer[A, P1, S]:
+    func: Callable[Concatenate[A, P], S]
+) -> _PartialTransformer[A, P, S]:
     """
-    Decorator to create partial transformers, which are transformers that allow for
-    partial application of their arguments. This capability is particularly useful for
-    creating configurable transformer instances where some arguments are preset, enhancing
-    modularity and reusability in data processing pipelines.
-
-    See Also:
-        For further details on partial transformers and their applications, see
-        :ref:`partial-transformers`.
+    Decorator to create partial transformers, which allow for partial application of
+    their arguments. This is useful for creating configurable transformer instances
+    where some arguments are preset, enhancing modularity and reusability.
 
     Example:
         Here's how to apply the `@partial_transformer` decorator to create a transformer
@@ -131,23 +124,23 @@ def partial_transformer(
 
     Returns:
         An instance of the :code:`_PartialTransformer`, an internal class utilized within
-        Gloe that facilitates partial instantiation of transformers by the user.
+        Gloe that facilitates partial instantiation of transformers.
     """
     return _PartialTransformer(func)
 
 
-class _PartialAsyncTransformer(Generic[A, P1, S]):
-    def __init__(self, func: Callable[Concatenate[A, P1], Awaitable[S]]):
+class _PartialAsyncTransformer(Generic[A, P, S]):
+    def __init__(self, func: Callable[Concatenate[A, P], Awaitable[S]]):
         """
-        Internal class to facilitate the creation of partial asynchronous transformers.
+        Internal class to create partial asynchronous transformers.
 
         Args:
             func: A callable that takes a primary argument of type `A` and additional
-                arguments specified by `P1`, returning an awaitable result of type `S`.
+                arguments specified by `P`, returning an awaitable result of type `S`.
         """
         self.func = func
 
-    def __call__(self, *args: P1.args, **kwargs: P1.kwargs) -> AsyncTransformer[A, S]:
+    def __call__(self, *args: P.args, **kwargs: P.kwargs) -> AsyncTransformer[A, S]:
         """
         Create a partial asynchronous transformer by pre-applying some arguments to the function.
 
@@ -202,18 +195,13 @@ class _PartialAsyncTransformer(Generic[A, P1, S]):
 
 
 def partial_async_transformer(
-    func: Callable[Concatenate[A, P1], Awaitable[S]]
-) -> _PartialAsyncTransformer[A, P1, S]:
+    func: Callable[Concatenate[A, P], Awaitable[S]]
+) -> _PartialAsyncTransformer[A, P, S]:
     """
-    Decorator to enable the creation of partial asynchronous transformers, which are
-    transformers capable of partial argument application. Such functionality is invaluable
-    for crafting reusable asynchronous transformer instances where certain arguments are
-    predetermined, enhancing both modularity and reusability within asynchronous data
-    processing flows.
-
-    See Also:
-        For additional insights into partial asynchronous transformers and their practical
-        applications, consult :ref:`partial-async-transformers`.
+    Decorator to create partial asynchronous transformers, which allow for partial
+    application of their arguments. This is useful for creating reusable asynchronous
+    transformer instances where certain arguments are predetermined, enhancing modularity
+    and reusability.
 
     Example:
         Utilize the `@partial_async_transformer` decorator to build a transformer with
@@ -237,7 +225,7 @@ def partial_async_transformer(
             `S`.
 
     Returns:
-        An instance of the :code:`_PartialAsyncTransformer`, an internally managed class
+        An instance of the :code:`_PartialAsyncTransformer`, an internal class
         within Gloe designed to facilitate the partial instantiation of asynchronous
         transformers.
     """
@@ -247,10 +235,6 @@ def partial_async_transformer(
 def transformer(func: Callable[[A], S]) -> Transformer[A, S]:
     """
     Convert a callable to an instance of the Transformer class.
-
-    See Also:
-        The most common usage is as a decorator. This example demonstrates how to use the
-        `@transformer` decorator to filter a list of users::
 
     Example:
         The most common use is as a decorator::
@@ -275,8 +259,8 @@ def transformer(func: Callable[[A], S]) -> Transformer[A, S]:
         warnings.warn(
             "Only one parameter is allowed on Transformers. "
             f"Function '{func.__name__}' has the following signature: {func_signature}. "
-            "To pass a complex data, use a complex type like named tuples, "
-            "typed dicts, dataclasses or anything else.",
+            "To pass complex data, use a complex type like named tuples, "
+            "typed dicts, dataclasses, or anything else.",
             category=RuntimeWarning,
         )
 
@@ -302,7 +286,7 @@ def transformer(func: Callable[[A], S]) -> Transformer[A, S]:
             """
             return func_signature
 
-        def transform(self, data):
+        def transform(self, data: A) -> S:
             """
             Apply the function to the input data.
 
@@ -324,9 +308,6 @@ def async_transformer(func: Callable[[A], Awaitable[S]]) -> AsyncTransformer[A, 
     """
     Convert a callable to an instance of the AsyncTransformer class.
 
-    See Also:
-        For more information about this feature, refer to the :ref:`async-transformers`.
-
     Example:
         The most common use is as a decorator::
 
@@ -340,7 +321,7 @@ def async_transformer(func: Callable[[A], Awaitable[S]]) -> AsyncTransformer[A, 
         func: A callable that takes a single argument and returns a coroutine.
 
     Returns:
-        Returns an instance of the AsyncTransformer class, representing the built async
+        An instance of the AsyncTransformer class, representing the built async
         transformer.
     """
     func_signature = inspect.signature(func)
@@ -349,8 +330,8 @@ def async_transformer(func: Callable[[A], Awaitable[S]]) -> AsyncTransformer[A, 
         warnings.warn(
             "Only one parameter is allowed on Transformers. "
             f"Function '{func.__name__}' has the following signature: {func_signature}. "
-            "To pass a complex data, use a complex type like named tuples, "
-            "typed dicts, dataclasses or anything else.",
+            "To pass complex data, use a complex type like named tuples, "
+            "typed dicts, dataclasses, or anything else.",
             category=RuntimeWarning,
         )
 
@@ -376,7 +357,7 @@ def async_transformer(func: Callable[[A], Awaitable[S]]) -> AsyncTransformer[A, 
             """
             return func_signature
 
-        async def transform_async(self, data):
+        async def transform_async(self, data: A) -> S:
             """
             Asynchronously apply the function to the input data.
 
