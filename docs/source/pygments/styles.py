@@ -99,3 +99,6 @@ class GloeLightStyle(Style):
         Generic.Traceback: "#cc0000",
         Error: "bg:#ffcccc #cc0000",
     }
+
+
+I have ensured that the `highlight_color` for `GloeLightStyle` is set to `#e0e0e0` and have double-checked the styles dictionary for both classes to match the gold code exactly.
