@@ -1,7 +1,6 @@
 import asyncio
 import unittest
 from typing import TypeVar, Any, cast
-
 from gloe import (
     async_transformer,
     ensure,
@@ -10,80 +9,65 @@ from gloe import (
     AsyncTransformer,
     TransformerException,
 )
-from gloe.async_transformer import _execute_async_flow
 from gloe.functional import partial_async_transformer
 from gloe.utils import forward
-from tests.lib.exceptions import LnOfNegativeNumber
-from tests.lib.transformers import async_plus1, async_natural_logarithm
+
+from tests.lib.ensurers import is_odd
+from tests.lib.exceptions import LnOfNegativeNumber, NumbersEqual, NumberIsEven
+from tests.lib.transformers import async_plus1, async_natural_logarithm, minus1
 
 _In = TypeVar("_In")
 
 _DATA = {"foo": "bar"}
-
+_URL = "http://my-service"
 
 async def raise_an_error():
     await asyncio.sleep(0.1)
     raise NotImplementedError()
-
 
 @async_transformer
 async def request_data(url: str) -> dict[str, str]:
     await asyncio.sleep(0.01)
     return _DATA
 
-
 class RequestData(AsyncTransformer[str, dict[str, str]]):
     async def transform_async(self, url: str) -> dict[str, str]:
         await asyncio.sleep(0.01)
         return _DATA
 
-
 class HasNotBarKey(Exception):
     pass
-
 
 class HasNotFooKey(Exception):
     pass
 
-
 class HasFooKey(Exception):
     pass
-
 
 class IsNotInt(Exception):
     pass
 
-
 def has_bar_key(data: dict[str, str]):
-    if "bar" not in data.keys():
+    if "bar" not in data:
         raise HasNotBarKey()
-
 
 def has_foo_key(data: dict[str, str]):
-    if "foo" not in data.keys():
+    if "foo" not in data:
         raise HasNotBarKey()
 
-
 def is_int(data: Any):
-    if type(data) is not int:
+    if not isinstance(data, int):
         raise IsNotInt()
 
-
 def is_str(data: Any):
-    if type(data) is not str:
+    if not isinstance(data, str):
         raise Exception("data is not string")
 
-
 def foo_key_removed(incoming: dict[str, str], outcome: dict[str, str]):
-    if "foo" not in incoming.keys():
+    if "foo" not in incoming:
         raise HasNotFooKey()
-
-    if "foo" in outcome.keys():
+    if "foo" in outcome:
         raise HasFooKey()
-
-
-_URL = "http://my-service"
-
 
 class TestAsyncTransformer(unittest.IsolatedAsyncioTestCase):
     async def test_basic_case(self):
