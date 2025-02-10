@@ -1,5 +1,7 @@
 import inspect
+from abc import ABC, abstractmethod
 from typing import Any, Callable, Generic, ParamSpec, Sequence, TypeVar, cast, overload
+from types import FunctionType
 
 from gloe.async_transformer import AsyncTransformer
 from gloe.functional import _PartialTransformer, _PartialAsyncTransformer
@@ -11,14 +13,14 @@ _U = TypeVar("_U")
 _P1 = ParamSpec("_P1")
 
 
-class TransformerEnsurer(Generic[_T, _S]):
+class TransformerEnsurer(Generic[_T, _S], ABC):
+    @abstractmethod
     def validate_input(self, data: _T):
         """Perform a validation on incoming data before executing the transformer code."""
-        pass
 
+    @abstractmethod
     def validate_output(self, data: _T, output: _S):
         """Perform a validation on outcome data after executing the transformer code."""
-        pass
 
     def __call__(self, transformer: Transformer[_T, _S]) -> Transformer[_T, _S]:
         def transform(this: Transformer, data: _T) -> _S:
@@ -27,13 +29,15 @@ class TransformerEnsurer(Generic[_T, _S]):
             self.validate_output(data, output)
             return output
 
-        return transformer.copy(transform)
+        transformer_cp = transformer.copy(transform)
+        transformer_cp.__class__.__name__ = transformer.__class__.__name__
+        return transformer_cp
 
 
 def input_ensurer(func: Callable[[_T], Any]) -> TransformerEnsurer[_T, Any]:
     class LambdaEnsurer(TransformerEnsurer[_T, _S]):
         __doc__ = func.__doc__
-        __annotations__ = cast(Callable, func).__annotations__
+        __annotations__ = cast(FunctionType, func).__annotations__
 
         def validate_input(self, data: _T):
             func(data)
@@ -54,13 +58,14 @@ def output_ensurer(func: Callable[[_S], Any]) -> TransformerEnsurer[Any, _S]: pa
 def output_ensurer(func: Callable) -> TransformerEnsurer:
     class LambdaEnsurer(TransformerEnsurer):
         __doc__ = func.__doc__
-        __annotations__ = cast(Callable, func).__annotations__
+        __annotations__ = cast(FunctionType, func).__annotations__
 
         def validate_input(self, data):
             pass
 
         def validate_output(self, data, output):
-            if len(inspect.signature(func).parameters) == 1:
+            sig = inspect.signature(func)
+            if len(sig.parameters) == 1:
                 func(output)
             else:
                 func(data, output)
@@ -68,7 +73,7 @@ def output_ensurer(func: Callable) -> TransformerEnsurer:
     return LambdaEnsurer()
 
 
-class _ensure_base:
+class _ensure_base(ABC):
     @overload
     def __call__(self, transformer: Transformer[_U, _S]) -> Transformer[_U, _S]: pass
 
@@ -97,23 +102,13 @@ class _ensure_base:
                 return self._generate_new_async_transformer(async_transformer)
             return ensured_async_transformer_init
 
+    @abstractmethod
     def _generate_new_transformer(self, transformer: Transformer) -> Transformer:
-        def transform(_, data):
-            self.validate_input(data)
-            output = transformer.transform(data)
-            self.validate_output(data, output)
-            return output
+        pass
 
-        return transformer.copy(transform)
-
+    @abstractmethod
     def _generate_new_async_transformer(self, transformer: AsyncTransformer) -> AsyncTransformer:
-        async def transform_async(_, data):
-            self.validate_input(data)
-            output = await transformer.transform_async(data)
-            self.validate_output(data, output)
-            return output
-
-        return transformer.copy(transform_async)
+        pass
 
 
 class _ensure_incoming(Generic[_T], _ensure_base):
@@ -126,7 +121,9 @@ class _ensure_incoming(Generic[_T], _ensure_base):
                 ensurer.validate_input(data)
             return transformer.transform(data)
 
-        return transformer.copy(transform)
+        transformer_cp = transformer.copy(transform)
+        transformer_cp.__class__.__name__ = transformer.__class__.__name__
+        return transformer_cp
 
     def _generate_new_async_transformer(self, transformer: AsyncTransformer) -> AsyncTransformer:
         async def transform_async(_, data):
@@ -134,7 +131,9 @@ class _ensure_incoming(Generic[_T], _ensure_base):
                 ensurer.validate_input(data)
             return await transformer.transform_async(data)
 
-        return transformer.copy(transform_async)
+        transformer_cp = transformer.copy(transform_async)
+        transformer_cp.__class__.__name__ = transformer.__class__.__name__
+        return transformer_cp
 
 
 class _ensure_outcome(Generic[_S], _ensure_base):
@@ -148,7 +147,9 @@ class _ensure_outcome(Generic[_S], _ensure_base):
                 ensurer.validate_output(data, output)
             return output
 
-        return transformer.copy(transform)
+        transformer_cp = transformer.copy(transform)
+        transformer_cp.__class__.__name__ = transformer.__class__.__name__
+        return transformer_cp
 
     def _generate_new_async_transformer(self, transformer: AsyncTransformer) -> AsyncTransformer:
         async def transform_async(_, data):
@@ -157,7 +158,9 @@ class _ensure_outcome(Generic[_S], _ensure_base):
                 ensurer.validate_output(data, output)
             return output
 
-        return transformer.copy(transform_async)
+        transformer_cp = transformer.copy(transform_async)
+        transformer_cp.__class__.__name__ = transformer.__class__.__name__
+        return transformer_cp
 
 
 class _ensure_changes(Generic[_T, _S], _ensure_base):
@@ -171,7 +174,9 @@ class _ensure_changes(Generic[_T, _S], _ensure_base):
                 ensurer.validate_output(data, output)
             return output
 
-        return transformer.copy(transform)
+        transformer_cp = transformer.copy(transform)
+        transformer_cp.__class__.__name__ = transformer.__class__.__name__
+        return transformer_cp
 
     def _generate_new_async_transformer(self, transformer: AsyncTransformer) -> AsyncTransformer:
         async def transform_async(_, data):
@@ -180,7 +185,9 @@ class _ensure_changes(Generic[_T, _S], _ensure_base):
                 ensurer.validate_output(data, output)
             return output
 
-        return transformer.copy(transform_async)
+        transformer_cp = transformer.copy(transform_async)
+        transformer_cp.__class__.__name__ = transformer.__class__.__name__
+        return transformer_cp
 
 
 class _ensure_both(Generic[_T, _S], _ensure_base):
@@ -197,7 +204,9 @@ class _ensure_both(Generic[_T, _S], _ensure_base):
                 ensurer.validate_output(data, output)
             return output
 
-        return transformer.copy(transform)
+        transformer_cp = transformer.copy(transform)
+        transformer_cp.__class__.__name__ = transformer.__class__.__name__
+        return transformer_cp
 
     def _generate_new_async_transformer(self, transformer: AsyncTransformer) -> AsyncTransformer:
         async def transform_async(_, data):
@@ -208,7 +217,9 @@ class _ensure_both(Generic[_T, _S], _ensure_base):
                 ensurer.validate_output(data, output)
             return output
 
-        return transformer.copy(transform_async)
+        transformer_cp = transformer.copy(transform_async)
+        transformer_cp.__class__.__name__ = transformer.__class__.__name__
+        return transformer_cp
 
 
 @overload
