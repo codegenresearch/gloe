@@ -72,7 +72,7 @@ class BaseTransformer(Generic[_In, _Out, _Self]):
     """Base class for all transformers."""
 
     def __init__(self):
-        self._previous: PreviousTransformer["BaseTransformer"] = None
+        self._previous: PreviousTransformer = None
         self._children: list[_Self] = []
         self._invisible: bool = False
         self.id: UUID = uuid.uuid4()
@@ -97,7 +97,7 @@ class BaseTransformer(Generic[_In, _Out, _Self]):
         return self._children
 
     @property
-    def previous(self) -> PreviousTransformer["BaseTransformer"]:
+    def previous(self) -> PreviousTransformer:
         """Previous transformers."""
         return self._previous
 
@@ -131,7 +131,7 @@ class BaseTransformer(Generic[_In, _Out, _Self]):
         if self.previous is not None:
             if isinstance(self.previous, tuple):
                 new_previous = tuple(prev.copy() for prev in self.previous)
-                copied_transformer._previous = cast(PreviousTransformer["BaseTransformer"], new_previous)
+                copied_transformer._previous = cast(PreviousTransformer, new_previous)
             elif isinstance(self.previous, BaseTransformer):
                 copied_transformer._previous = self.previous.copy()
         copied_transformer._children = [child.copy(regenerate_instance_id=True) for child in self.children]
@@ -151,7 +151,7 @@ class BaseTransformer(Generic[_In, _Out, _Self]):
             nodes.update(child.graph_nodes)
         return nodes
 
-    def _set_previous(self, previous: PreviousTransformer["BaseTransformer"]):
+    def _set_previous(self, previous: PreviousTransformer):
         """Sets the previous transformer."""
         if not isinstance(previous, (type(None), BaseTransformer, tuple)):
             raise TypeError("previous must be None, BaseTransformer, or a tuple of BaseTransformers")
@@ -244,7 +244,7 @@ class BaseTransformer(Generic[_In, _Out, _Self]):
         return str(self.instance_id)
 
     @cached_property
-    def visible_previous(self) -> PreviousTransformer["BaseTransformer"]:
+    def visible_previous(self) -> PreviousTransformer:
         """Returns the visible previous transformer."""
         previous = self.previous
         if isinstance(previous, BaseTransformer):
