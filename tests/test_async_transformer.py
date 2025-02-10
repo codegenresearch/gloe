@@ -1,7 +1,7 @@
 import asyncio
 import unittest
 from typing import TypeVar, Any
-from gloe import async_transformer, ensure, partial_async_transformer, UnsupportedTransformerArgException, transformer
+from gloe import async_transformer, ensure, partial_async_transformer, UnsupportedTransformerArgException
 from gloe.utils import forward
 
 _In = TypeVar("_In")
