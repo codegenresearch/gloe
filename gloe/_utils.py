@@ -9,7 +9,6 @@ from typing import (
     Any,
     Union,
     _GenericAlias,
-    tuple,
     list,
 )
 
@@ -45,15 +44,15 @@ def _format_generic_alias(
 def _format_return_annotation(
     return_annotation, generic_input_param, input_annotation
 ) -> str:
-    if isinstance(return_annotation, str):
+    if type(return_annotation) == str:
         return return_annotation
-    if isinstance(return_annotation, tuple):
+    if type(return_annotation) == tuple:
         return _format_tuple(return_annotation, generic_input_param, input_annotation)
     if return_annotation.__name__ in {"tuple", "Tuple"}:
         return _format_tuple(return_annotation.__args__, generic_input_param, input_annotation)
     if return_annotation.__name__ in {"Union"}:
         return _format_union(return_annotation.__args__, generic_input_param, input_annotation)
-    if isinstance(return_annotation, (GenericAlias, _GenericAlias)):
+    if type(return_annotation) in {GenericAlias, _GenericAlias}:
         return _format_generic_alias(return_annotation, generic_input_param, input_annotation)
 
     if return_annotation == generic_input_param:
@@ -63,7 +62,7 @@ def _format_return_annotation(
 
 
 def _match_types(generic, specific, ignore_mismatches=True):
-    if isinstance(generic, TypeVar):
+    if type(generic) == TypeVar:
         return {generic: specific}
 
     specific_origin = get_origin(specific)
@@ -72,15 +71,14 @@ def _match_types(generic, specific, ignore_mismatches=True):
     if specific_origin is None and generic_origin is None:
         return {}
 
-    if specific_origin is None and isinstance(specific, TypeVar):
+    if specific_origin is None and type(specific) == TypeVar:
         return {}
 
     if specific_origin is Union:
         for arg in specific.__args__:
-            try:
-                return _match_types(generic, arg, ignore_mismatches)
-            except Exception:
-                continue
+            matches = _match_types(generic, arg, ignore_mismatches)
+            if matches:
+                return matches
         if ignore_mismatches:
             return {}
         raise Exception(f"Type {generic} does not match with any type in union {specific}")
@@ -120,7 +118,7 @@ def _match_types(generic, specific, ignore_mismatches=True):
 
 
 def _specify_types(generic, spec):
-    if isinstance(generic, TypeVar):
+    if type(generic) == TypeVar:
         tp = spec.get(generic)
         if tp is None:
             return generic
