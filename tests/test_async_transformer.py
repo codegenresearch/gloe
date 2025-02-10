@@ -1,7 +1,8 @@
 import asyncio
 import unittest
 from typing import TypeVar
-from gloe import async_transformer, ensure, partial_async_transformer, forward
+from gloe import async_transformer, ensure, partial_async_transformer, UnsupportedTransformerArgException, transformer
+from gloe.utils import forward
 
 _In = TypeVar("_In")
 
@@ -16,8 +17,11 @@ class HasNotBarKey(Exception):
     pass
 
 def has_bar_key(d: dict[str, str]):
-    if "bar" not in d:
+    if "bar" not in d.keys():
         raise HasNotBarKey()
+
+def is_string(data: Any) -> bool:
+    return isinstance(data, str)
 
 _URL = "http://my-service"
 
@@ -73,3 +77,27 @@ class TestAsyncTransformer(unittest.IsolatedAsyncioTestCase):
         pipeline = ensured_delayed_request(0.1) >> forward()
         with self.assertRaises(HasNotBarKey):
             await pipeline(_URL)
+
+    def test_unsupported_argument(self):
+        def just_a_normal_function():
+            return None
+
+        with self.assertRaises(
+            UnsupportedTransformerArgException,
+            msg=f"Unsupported transformer argument: {just_a_normal_function}",
+        ):
+            _ = request_data >> just_a_normal_function  # type: ignore
+
+        with self.assertRaises(
+            UnsupportedTransformerArgException,
+            msg=f"Unsupported transformer argument: {just_a_normal_function}",
+        ):
+            _ = request_data >> (just_a_normal_function, forward())  # type: ignore
+
+    async def test_pipeline_copy(self):
+        original_pipeline = request_data >> forward()
+        copied_pipeline = original_pipeline.copy()
+        result_original = await original_pipeline(_URL)
+        result_copied = await copied_pipeline(_URL)
+        self.assertDictEqual(result_original, _DATA)
+        self.assertDictEqual(result_copied, _DATA)
