@@ -71,6 +71,7 @@ _URL = "http://my-service"
 
 class TestAsyncTransformer(unittest.IsolatedAsyncioTestCase):
     async def test_basic_case(self):
+        # Test a simple pipeline with a single async transformer
         test_forward = request_data >> forward()
 
         result = await test_forward(_URL)
@@ -78,6 +79,7 @@ class TestAsyncTransformer(unittest.IsolatedAsyncioTestCase):
         self.assertDictEqual(result, _DATA)
 
     async def test_begin_with_transformer(self):
+        # Test a pipeline starting with a forward transformer
         test_forward = forward[str]() >> request_data
 
         result = await test_forward(_URL)
@@ -85,6 +87,7 @@ class TestAsyncTransformer(unittest.IsolatedAsyncioTestCase):
         self.assertDictEqual(result, _DATA)
 
     async def test_async_on_divergent_connection(self):
+        # Test a pipeline with a divergent connection
         test_forward = forward[str]() >> (forward[str](), request_data)
 
         result = await test_forward(_URL)
@@ -92,6 +95,7 @@ class TestAsyncTransformer(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(result, (_URL, _DATA))
 
     async def test_divergent_connection_from_async(self):
+        # Test a divergent connection starting from an async transformer
         test_forward = request_data >> (
             forward[dict[str, str]](),
             forward[dict[str, str]](),
@@ -102,6 +106,7 @@ class TestAsyncTransformer(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(result, (_DATA, _DATA))
 
     async def test_partial_async_transformer(self):
+        # Test a pipeline with a partial async transformer
         @partial_async_transformer
         async def sleep_and_forward(data: dict[str, str], delay: float) -> dict[str, str]:
             await asyncio.sleep(delay)
@@ -114,6 +119,7 @@ class TestAsyncTransformer(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(result, _DATA)
 
     async def test_ensure_async_transformer(self):
+        # Test an async transformer with ensure decorator
         @ensure(incoming=[is_str], outcome=[has_bar_key])
         @async_transformer
         async def ensured_request(url: str) -> dict[str, str]:
@@ -138,18 +144,8 @@ class TestAsyncTransformer(unittest.IsolatedAsyncioTestCase):
         with self.assertRaises(HasFooKey):
             await pipeline(_URL)
 
-        @ensure(incoming=[is_int], outcome=[has_bar_key])
-        @async_transformer
-        async def ensured_request_with_int(url: int) -> dict[str, str]:
-            await asyncio.sleep(0.1)
-            return _DATA
-
-        pipeline = ensured_request_with_int >> forward()
-
-        with self.assertRaises(IsNotInt):
-            await pipeline(_URL)
-
     async def test_ensure_partial_async_transformer(self):
+        # Test a partial async transformer with ensure decorator
         @ensure(incoming=[is_str], outcome=[has_bar_key])
         @partial_async_transformer
         async def ensured_delayed_request(url: str, delay: float) -> dict[str, str]:
@@ -162,6 +158,7 @@ class TestAsyncTransformer(unittest.IsolatedAsyncioTestCase):
             await pipeline(_URL)
 
     async def test_async_transformer_wrong_arg(self):
+        # Test handling of unsupported transformer arguments
         def next_transformer():
             pass
 
@@ -175,6 +172,7 @@ class TestAsyncTransformer(unittest.IsolatedAsyncioTestCase):
             pipeline = ensured_delayed_request(0.1) >> next_transformer
 
     async def test_async_transformer_copy(self):
+        # Test copying an async transformer pipeline
         @transformer
         def add_slash(path: str) -> str:
             return path + "/"
@@ -203,6 +201,7 @@ class TestAsyncTransformer(unittest.IsolatedAsyncioTestCase):
         pass
 
     async def test_transformer_wrong_signature(self):
+        # Test handling of transformers with incorrect signatures
         with self.assertWarns(RuntimeWarning):
 
             @transformer  # type: ignore
@@ -210,6 +209,7 @@ class TestAsyncTransformer(unittest.IsolatedAsyncioTestCase):
                 return arg1, arg2
 
     async def test_integer_input(self):
+        # Test handling of integer inputs with ensure decorator
         @ensure(incoming=[is_int], outcome=[has_bar_key])
         @async_transformer
         async def int_request(num: int) -> dict[str, str]:
@@ -222,6 +222,7 @@ class TestAsyncTransformer(unittest.IsolatedAsyncioTestCase):
             await pipeline(_URL)
 
     async def test_foo_key_handling(self):
+        # Test handling of the "foo" key with ensure decorator
         @ensure(outcome=[foo_key_removed])
         @async_transformer
         async def remove_foo(data: dict[str, str]) -> dict[str, str]:
