@@ -9,14 +9,13 @@ from typing import (
     Any,
     Union,
     _GenericAlias,
-    list,
 )
 
 
 def _format_tuple(
     tuple_annotation: tuple, generic_input_param, input_annotation
 ) -> str:
-    formatted: list[str] = []
+    formatted = []
     for annotation in tuple_annotation:
         formatted.append(_format_return_annotation(annotation, generic_input_param, input_annotation))
     return f"({', '.join(formatted)})"
@@ -25,7 +24,7 @@ def _format_tuple(
 def _format_union(
     tuple_annotation: tuple, generic_input_param, input_annotation
 ) -> str:
-    formatted: list[str] = []
+    formatted = []
     for annotation in tuple_annotation:
         formatted.append(_format_return_annotation(annotation, generic_input_param, input_annotation))
     return f"({' | '.join(formatted)})"
@@ -35,7 +34,7 @@ def _format_generic_alias(
     return_annotation: GenericAlias, generic_input_param, input_annotation
 ) -> str:
     alias_name = return_annotation.__name__
-    formatted: list[str] = []
+    formatted = []
     for annotation in return_annotation.__args__:
         formatted.append(_format_return_annotation(annotation, generic_input_param, input_annotation))
     return f"{alias_name}[{', '.join(formatted)}]"
