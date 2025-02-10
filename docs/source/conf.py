@@ -27,7 +27,6 @@ extensions = [
     "sphinx.ext.napoleon",
     "sphinx.ext.intersphinx",
     "sphinxext.opengraph",
-    # "sphinx_autodoc_typehints",  # Uncomment if type hints are needed
     "myst_parser",
     "sphinx_copybutton",
 ]
