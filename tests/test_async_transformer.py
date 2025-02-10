@@ -16,13 +16,13 @@ async def request_data(url: str) -> dict[str, str]:
 class HasNotBarKey(Exception):
     pass
 
-def has_bar_key(d: dict[str, str]) -> None:
-    if "bar" not in d:
-        raise HasNotBarKey("Dictionary does not contain the key 'bar'")
+def has_bar_key(data: dict[str, str]) -> None:
+    if "bar" not in data:
+        raise HasNotBarKey()
 
 def is_string(data: Any) -> None:
     if not isinstance(data, str):
-        raise ValueError("Data is not a string")
+        raise ValueError()
 
 _URL = "http://my-service"
 
@@ -58,7 +58,7 @@ class TestAsyncTransformer(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(result, _DATA)
 
     async def test_ensure_async_transformer(self):
-        @ensure(outcome=[has_bar_key])
+        @ensure(outcome=[has_bar_key], incoming=[is_string])
         @async_transformer
         async def ensured_request(url: str) -> dict[str, str]:
             await asyncio.sleep(0.1)
@@ -69,7 +69,7 @@ class TestAsyncTransformer(unittest.IsolatedAsyncioTestCase):
             await pipeline(_URL)
 
     async def test_ensure_partial_async_transformer(self):
-        @ensure(outcome=[has_bar_key])
+        @ensure(outcome=[has_bar_key], incoming=[is_string])
         @partial_async_transformer
         async def ensured_delayed_request(url: str, delay: float) -> dict[str, str]:
             await asyncio.sleep(delay)
