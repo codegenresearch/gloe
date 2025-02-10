@@ -1,7 +1,5 @@
 import traceback
 from abc import ABC, abstractmethod
-from inspect import Signature
-
 from typing import (
     TypeVar,
     overload,
@@ -151,12 +149,14 @@ class Transformer(BaseTransformer[I, O, "Transformer"], ABC):
         if transform_exception is not None:
             raise transform_exception.internal_exception
 
-        if type(transformed) is not None:
+        if transformed is not None:
             return cast(O, transformed)
 
         raise NotImplementedError("Transform method did not return a value")  # pragma: no cover
 
     def _is_instance_of(self, value: Any, type_: Any) -> bool:
+        if type_ is Any:
+            return True
         origin = get_origin(type_)
         if origin is None:
             return isinstance(value, type_)
