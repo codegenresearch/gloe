@@ -52,9 +52,9 @@ def _format_generic_alias(
 def _format_return_annotation(
     return_annotation, generic_input_param, input_annotation
 ) -> str:
-    if isinstance(return_annotation, str):
+    if type(return_annotation) == str:
         return return_annotation
-    if isinstance(return_annotation, tuple):
+    if type(return_annotation) == tuple:
         return _format_tuple(return_annotation, generic_input_param, input_annotation)
     if return_annotation.__name__ in {"tuple", "Tuple"}:
         return _format_tuple(
@@ -65,8 +65,8 @@ def _format_return_annotation(
             return_annotation.__args__, generic_input_param, input_annotation
         )
     if (
-        isinstance(return_annotation, GenericAlias)
-        or isinstance(return_annotation, _GenericAlias)
+        type(return_annotation) == GenericAlias
+        or type(return_annotation) == _GenericAlias
     ):
         return _format_generic_alias(
             return_annotation, generic_input_param, input_annotation
@@ -79,7 +79,7 @@ def _format_return_annotation(
 
 
 def _match_types(generic, specific, ignore_mismatches=True):
-    if isinstance(generic, TypeVar):
+    if type(generic) == TypeVar:
         return {generic: specific}
 
     specific_origin = get_origin(specific)
@@ -98,10 +98,20 @@ def _match_types(generic, specific, ignore_mismatches=True):
     generic_args = getattr(generic, "__args__", None)
     specific_args = getattr(specific, "__args__", None)
 
-    if specific_args is None or generic_args is None:
+    if specific_args is None and generic_args is None:
         if ignore_mismatches:
             return {}
-        raise Exception(f"Type {generic} or {specific} has no arguments")
+        raise Exception(f"Type {generic} and {specific} have no arguments")
+
+    if generic_args is None:
+        if ignore_mismatches:
+            return {}
+        raise Exception(f"Type {generic} in generic has no arguments")
+
+    if specific_args is None:
+        if ignore_mismatches:
+            return {}
+        raise Exception(f"Type {specific} in specific has no arguments")
 
     if len(generic_args) != len(specific_args):
         if ignore_mismatches:
@@ -119,7 +129,7 @@ def _match_types(generic, specific, ignore_mismatches=True):
 
 
 def _specify_types(generic, spec):
-    if isinstance(generic, TypeVar):
+    if type(generic) == TypeVar:
         tp = spec.get(generic)
         if tp is None:
             return generic
