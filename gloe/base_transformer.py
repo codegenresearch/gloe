@@ -362,7 +362,7 @@ class BaseTransformer(Generic[_In, _Out, _Self]):
     @staticmethod
     def _format_return_annotation(output_type: Any) -> str:
         """Formats the return annotation."""
-        if isinstance(output_type, tuple):
+        if get_origin(output_type) is tuple:
             return 'tuple'
         if isinstance(output_type, type):
             return output_type.__name__
