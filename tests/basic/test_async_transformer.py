@@ -48,26 +48,29 @@ class IsNotInt(Exception):
     pass
 
 def has_bar_key(data: dict[str, str]):
-    if "bar" not in data:
+    if "bar" not in data.keys():
         raise HasNotBarKey()
 
 def has_foo_key(data: dict[str, str]):
-    if "foo" not in data:
+    if "foo" not in data.keys():
         raise HasNotBarKey()
 
 def is_int(data: Any):
-    if not isinstance(data, int):
+    if type(data) is not int:
         raise IsNotInt()
 
 def is_str(data: Any):
-    if not isinstance(data, str):
+    if type(data) is not str:
         raise Exception("data is not string")
 
 def foo_key_removed(incoming: dict[str, str], outcome: dict[str, str]):
-    if "foo" not in incoming:
+    if "foo" not in incoming.keys():
         raise HasNotFooKey()
-    if "foo" in outcome:
+    if "foo" in outcome.keys():
         raise HasFooKey()
+
+async def _execute_async_flow(flow, _):
+    raise NotImplementedError()
 
 class TestAsyncTransformer(unittest.IsolatedAsyncioTestCase):
     async def test_basic_case(self):
