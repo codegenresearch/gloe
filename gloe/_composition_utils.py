@@ -154,7 +154,7 @@ def _compose_nodes(current: BaseTransformer, next_node: Union[BaseTransformer, T
 
 
 ### Key Changes:
-1. **Syntax Correction**: Removed any invalid syntax or comments that were causing the `SyntaxError`.
+1. **Removed Invalid Syntax**: Removed any invalid syntax or comments that were causing the `SyntaxError`.
 2. **Type Annotations**: Ensured all function parameters and return types are consistently annotated.
 3. **Variable Naming**: Renamed `_transformer2` to `transformer2` in `_nerge_serial`.
 4. **Return Annotations**: Used `GenericAlias` correctly for return annotations in `_merge_diverging`.
