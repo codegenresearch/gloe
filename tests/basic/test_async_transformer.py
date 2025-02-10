@@ -1,10 +1,16 @@
 import asyncio
 import unittest
 from typing import TypeVar, Any, cast
-from gloe import async_transformer, ensure, UnsupportedTransformerArgException, transformer, AsyncTransformer, TransformerException
+from gloe import (
+    async_transformer,
+    ensure,
+    UnsupportedTransformerArgException,
+    transformer,
+    AsyncTransformer,
+    TransformerException,
+)
 from gloe.functional import partial_async_transformer
 from gloe.utils import forward
-
 from tests.lib.exceptions import LnOfNegativeNumber, NumbersEqual, NumberIsEven
 from tests.lib.transformers import async_plus1, async_natural_logarithm, minus1
 
@@ -26,12 +32,12 @@ class IsNotInt(Exception):
     pass
 
 def has_bar_key(data: dict[str, str]):
-    if "bar" not in data.keys():
+    if "bar" not in data:
         raise HasNotBarKey()
 
 def has_foo_key(data: dict[str, str]):
-    if "foo" not in data.keys():
-        raise HasNotBarKey()
+    if "foo" not in data:
+        raise HasNotFooKey()
 
 def is_int(data: Any):
     if not isinstance(data, int):
@@ -42,9 +48,9 @@ def is_str(data: Any):
         raise Exception("data is not string")
 
 def foo_key_removed(incoming: dict[str, str], outcome: dict[str, str]):
-    if "foo" not in incoming.keys():
+    if "foo" not in incoming:
         raise HasNotFooKey()
-    if "foo" in outcome.keys():
+    if "foo" in outcome:
         raise HasFooKey()
 
 @async_transformer
@@ -146,7 +152,7 @@ class TestAsyncTransformer(unittest.IsolatedAsyncioTestCase):
         """Test the instantiation of a large graph."""
         graph = async_plus1
         max_iters = 1500
-        for iteration in range(max_iters):
+        for _ in range(max_iters):
             graph = graph >> async_plus1
 
         result = await graph(0)
