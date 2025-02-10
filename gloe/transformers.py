@@ -9,6 +9,8 @@ from typing import (
     Any,
     TypeAlias,
     Union,
+    get_origin,
+    get_args,
 )
 
 from gloe.base_transformer import BaseTransformer, TransformerException
@@ -107,7 +109,8 @@ class Transformer(BaseTransformer[I, O, "Transformer"], ABC):
         return f"{self.input_annotation} -> ({type(self).__name__}) -> {self.output_annotation}"
 
     def __call__(self, data: I) -> O:
-        if not isinstance(data, self.input_type):
+        # Validate input type
+        if not self._is_instance_of(data, self.input_type):
             raise TypeError(f"Expected input of type {self.input_type}, got {type(data)}")
 
         transform_exception = None
@@ -151,7 +154,24 @@ class Transformer(BaseTransformer[I, O, "Transformer"], ABC):
         if type(transformed) is not None:
             return cast(O, transformed)
 
-        raise NotImplementedError("Transform method did not return a value")
+        raise NotImplementedError("Transform method did not return a value")  # pragma: no cover
+
+    def _is_instance_of(self, value: Any, type_: Any) -> bool:
+        origin = get_origin(type_)
+        if origin is None:
+            return isinstance(value, type_)
+        elif origin is Union:
+            return any(self._is_instance_of(value, arg) for arg in get_args(type_))
+        elif origin is list or origin is tuple:
+            arg_type = get_args(type_)[0]
+            return isinstance(value, origin) and all(self._is_instance_of(item, arg_type) for item in value)
+        elif origin is dict:
+            key_type, value_type = get_args(type_)
+            return isinstance(value, origin) and all(
+                self._is_instance_of(k, key_type) and self._is_instance_of(v, value_type)
+                for k, v in value.items()
+            )
+        return False
 
     @overload
     def __rshift__(
