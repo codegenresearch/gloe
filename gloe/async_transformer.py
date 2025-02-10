@@ -66,7 +66,7 @@ class AsyncTransformer(BaseTransformer[_In, _Out, "AsyncTransformer"], ABC):
         try:
             transformed = await self.transform_async(data)
         except Exception as exception:
-            if type(exception.__cause__) == TransformerException:
+            if isinstance(exception.__cause__, TransformerException):
                 transform_exception = exception.__cause__
             else:
                 tb = traceback.extract_tb(exception.__traceback__)
@@ -100,7 +100,7 @@ class AsyncTransformer(BaseTransformer[_In, _Out, "AsyncTransformer"], ABC):
         if transform_exception is not None:
             raise transform_exception.internal_exception
 
-        if type(transformed) is not None:
+        if transformed is not None:
             return cast(_Out, transformed)
 
         raise NotImplementedError  # pragma: no cover
@@ -122,7 +122,7 @@ class AsyncTransformer(BaseTransformer[_In, _Out, "AsyncTransformer"], ABC):
             copied.instance_id = uuid.uuid4()
 
         if self.previous is not None:
-            if type(self.previous) == tuple:
+            if isinstance(self.previous, tuple):
                 new_previous: list[BaseTransformer] = [
                     previous_transformer.copy() for previous_transformer in self.previous
                 ]
