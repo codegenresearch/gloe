@@ -303,17 +303,20 @@ def ensure(*args, **kwargs):
         outcome (Sequence[Callable[[_S], Any]]): Validators for outcome data.
         changes (Sequence[Callable[[_T, _S], Any]]): Validators for both incoming and outcome data.
     """
+    if "incoming" in kwargs and "outcome" in kwargs and "changes" in kwargs:
+        return _ensure_both(
+            kwargs["incoming"], kwargs["outcome"], kwargs["changes"]
+        )
+    if "incoming" in kwargs and "outcome" in kwargs:
+        return _ensure_both(kwargs["incoming"], kwargs["outcome"], [])
+    if "incoming" in kwargs and "changes" in kwargs:
+        return _ensure_both(kwargs["incoming"], [], kwargs["changes"])
+    if "outcome" in kwargs and "changes" in kwargs:
+        return _ensure_both([], kwargs["outcome"], kwargs["changes"])
     if "incoming" in kwargs:
         return _ensure_incoming(kwargs["incoming"])
-
     if "outcome" in kwargs:
         return _ensure_outcome(kwargs["outcome"])
-
     if "changes" in kwargs:
         return _ensure_changes(kwargs["changes"])
-
-    if len(kwargs) > 1:
-        incoming = kwargs.get("incoming", [])
-        outcome = kwargs.get("outcome", [])
-        changes = kwargs.get("changes", [])
-        return _ensure_both(incoming, outcome, changes)
+    return _ensure_both([], [], [])
