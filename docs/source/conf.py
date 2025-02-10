@@ -27,6 +27,7 @@ extensions = [
     "sphinx.ext.napoleon",
     "sphinx.ext.intersphinx",
     "sphinxext.opengraph",
+    # "sphinx_autodoc_typehints",  # Uncomment if type hints are needed
     "myst_parser",
     "sphinx_copybutton",
 ]
@@ -74,8 +75,8 @@ html_theme_options = {
         "font-size--normal": "Courier, monospace",
     },
     "light_css_variables": {
-        "color-brand-primary": "#14c8ef",
-        "color-brand-content": "#14c8ef",
+        "color-brand-primary": "#45df9a",
+        "color-brand-content": "#45df9a",
         "font-stack": "Roboto, sans-serif",
         "font-stack--monospace": "Courier, monospace",
         "font-size--normal": "Courier, monospace",
