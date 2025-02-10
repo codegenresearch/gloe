@@ -5,6 +5,7 @@ from gloe import async_transformer, ensure, UnsupportedTransformerArgException, 
 from gloe.functional import partial_async_transformer
 from gloe.utils import forward
 
+from tests.lib.exceptions import LnOfNegativeNumber, NumbersEqual, NumberIsEven
 from tests.lib.transformers import async_plus1, async_natural_logarithm, minus1
 
 _In = TypeVar("_In")
@@ -56,33 +57,37 @@ class RequestData(AsyncTransformer[str, dict[str, str]]):
         await asyncio.sleep(0.01)
         return _DATA
 
+async def raise_an_error():
+    await asyncio.sleep(0.1)
+    raise NotImplementedError()
+
 class TestAsyncTransformer(unittest.IsolatedAsyncioTestCase):
     async def test_basic_case(self):
-        # Test the basic case where request_data is followed by forward
+        """Test the basic case where request_data is followed by forward."""
         test_forward = request_data >> forward()
         result = await test_forward(_URL)
         self.assertDictEqual(_DATA, result)
 
     async def test_begin_with_transformer(self):
-        # Test starting with a forward transformer followed by request_data
+        """Test starting with a forward transformer followed by request_data."""
         test_forward = forward[str]() >> request_data
         result = await test_forward(_URL)
         self.assertDictEqual(_DATA, result)
 
     async def test_async_on_divergent_connection(self):
-        # Test a divergent connection starting with a forward transformer
+        """Test a divergent connection starting with a forward transformer."""
         test_forward = forward[str]() >> (forward[str](), request_data)
         result = await test_forward(_URL)
         self.assertEqual((_URL, _DATA), result)
 
     async def test_divergent_connection_from_async(self):
-        # Test a divergent connection starting with an async transformer
+        """Test a divergent connection starting with an async transformer."""
         test_forward = request_data >> (forward[dict[str, str]](), forward[dict[str, str]]())
         result = await test_forward(_URL)
         self.assertEqual((_DATA, _DATA), result)
 
     async def test_async_transformer_wrong_arg(self):
-        # Test passing an unsupported argument to an async transformer
+        """Test passing an unsupported argument to an async transformer."""
         def next_transformer():
             pass
 
@@ -96,7 +101,7 @@ class TestAsyncTransformer(unittest.IsolatedAsyncioTestCase):
             ensured_delayed_request(0.01) >> next_transformer  # type: ignore
 
     async def test_async_transformer_copy(self):
-        # Test copying an async transformer pipeline
+        """Test copying an async transformer pipeline."""
         @transformer
         def add_slash(path: str) -> str:
             return path + "/"
@@ -112,7 +117,7 @@ class TestAsyncTransformer(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(_DATA, result)
 
     def test_async_transformer_wrong_signature(self):
-        # Test an async transformer with an incorrect signature
+        """Test an async transformer with an incorrect signature."""
         with self.assertWarns(RuntimeWarning):
             @async_transformer  # type: ignore
             async def many_args(arg1: str, arg2: int):
@@ -120,12 +125,12 @@ class TestAsyncTransformer(unittest.IsolatedAsyncioTestCase):
                 return arg1, arg2
 
     def test_async_transformer_signature_representation(self):
-        # Test the string representation of an async transformer's signature
+        """Test the string representation of an async transformer's signature."""
         signature = request_data.signature()
         self.assertEqual(str(signature), "(url: str) -> dict[str, str]")
 
     def test_async_transformer_representation(self):
-        # Test the string representation of an async transformer
+        """Test the string representation of an async transformer."""
         self.assertEqual(repr(request_data), "str -> (request_data) -> dict[str, str]")
         class_request_data = RequestData()
         self.assertEqual(repr(class_request_data), "str -> (RequestData) -> dict[str, str]")
@@ -138,7 +143,7 @@ class TestAsyncTransformer(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(repr(request_and_serialize), "dict -> (2 transformers omitted) -> str")
 
     async def test_exhausting_large_flow(self):
-        # Test the instantiation of a large graph
+        """Test the instantiation of a large graph."""
         graph = async_plus1
         max_iters = 1500
         for iteration in range(max_iters):
@@ -148,23 +153,23 @@ class TestAsyncTransformer(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(result, max_iters + 1)
 
     async def test_async_transformer_error_handling(self):
-        # Test error handling in an async transformer pipeline
+        """Test error handling in an async transformer pipeline."""
         async_graph = async_plus1 >> async_natural_logarithm
         try:
             await async_graph(-2)
-        except Exception as exception:
+        except LnOfNegativeNumber as exception:
             self.assertEqual(type(exception.__cause__), TransformerException)
             exception_ctx = cast(TransformerException, exception.__cause__)
             self.assertEqual(async_natural_logarithm, exception_ctx.raiser_transformer)
 
     async def test_execute_async_wrong_flow(self):
-        # Test executing an async flow with an unsupported flow
+        """Test executing an async flow with an unsupported flow."""
         flow = [2]
         with self.assertRaises(NotImplementedError):
             await _execute_async_flow(flow, 1)  # type: ignore
 
     async def test_composition_transform_method(self):
-        # Test the transform_async method of a composed transformer
+        """Test the transform_async method of a composed transformer."""
         test3 = forward[float]() >> async_plus1
         result = await test3.transform_async(5)
         self.assertIsNone(result)
