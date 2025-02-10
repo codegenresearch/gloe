@@ -9,6 +9,7 @@ from gloe import (
     AsyncTransformer,
     TransformerException,
 )
+from gloe.async_transformer import _execute_async_flow
 from gloe.functional import partial_async_transformer
 from gloe.utils import forward
 from tests.lib.exceptions import LnOfNegativeNumber, NumbersEqual, NumberIsEven
@@ -32,25 +33,25 @@ class IsNotInt(Exception):
     pass
 
 def has_bar_key(data: dict[str, str]):
-    if "bar" not in data:
+    if "bar" not in data.keys():
         raise HasNotBarKey()
 
 def has_foo_key(data: dict[str, str]):
-    if "foo" not in data:
+    if "foo" not in data.keys():
         raise HasNotFooKey()
 
 def is_int(data: Any):
-    if not isinstance(data, int):
+    if type(data) is not int:
         raise IsNotInt()
 
 def is_str(data: Any):
-    if not isinstance(data, str):
+    if type(data) is not str:
         raise Exception("data is not string")
 
 def foo_key_removed(incoming: dict[str, str], outcome: dict[str, str]):
-    if "foo" not in incoming:
+    if "foo" not in incoming.keys():
         raise HasNotFooKey()
-    if "foo" in outcome:
+    if "foo" in outcome.keys():
         raise HasFooKey()
 
 @async_transformer
@@ -182,7 +183,3 @@ class TestAsyncTransformer(unittest.IsolatedAsyncioTestCase):
         test2 = forward[float]() >> (async_plus1, async_plus1)
         result2 = await test2.transform_async(5)
         self.assertIsNone(result2)
-
-# Define the _execute_async_flow function to handle async flows
-async def _execute_async_flow(flow, value):
-    raise NotImplementedError()
