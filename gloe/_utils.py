@@ -9,24 +9,24 @@ from typing import (
     Any,
     Union,
     _GenericAlias,
-    Tuple,
-    List,
+    tuple,
+    list,
 )
 
 
 def _format_tuple(
-    tuple_annotation: Tuple, generic_input_param, input_annotation
+    tuple_annotation: tuple, generic_input_param, input_annotation
 ) -> str:
-    formatted: List[str] = []
+    formatted: list[str] = []
     for annotation in tuple_annotation:
         formatted.append(_format_return_annotation(annotation, generic_input_param, input_annotation))
     return f"({', '.join(formatted)})"
 
 
 def _format_union(
-    tuple_annotation: Tuple, generic_input_param, input_annotation
+    tuple_annotation: tuple, generic_input_param, input_annotation
 ) -> str:
-    formatted: List[str] = []
+    formatted: list[str] = []
     for annotation in tuple_annotation:
         formatted.append(_format_return_annotation(annotation, generic_input_param, input_annotation))
     return f"({' | '.join(formatted)})"
@@ -36,7 +36,7 @@ def _format_generic_alias(
     return_annotation: GenericAlias, generic_input_param, input_annotation
 ) -> str:
     alias_name = return_annotation.__name__
-    formatted: List[str] = []
+    formatted: list[str] = []
     for annotation in return_annotation.__args__:
         formatted.append(_format_return_annotation(annotation, generic_input_param, input_annotation))
     return f"{alias_name}[{', '.join(formatted)}]"
@@ -45,15 +45,15 @@ def _format_generic_alias(
 def _format_return_annotation(
     return_annotation, generic_input_param, input_annotation
 ) -> str:
-    if type(return_annotation) == str:
+    if isinstance(return_annotation, str):
         return return_annotation
-    if type(return_annotation) == tuple:
+    if isinstance(return_annotation, tuple):
         return _format_tuple(return_annotation, generic_input_param, input_annotation)
     if return_annotation.__name__ in {"tuple", "Tuple"}:
         return _format_tuple(return_annotation.__args__, generic_input_param, input_annotation)
     if return_annotation.__name__ in {"Union"}:
         return _format_union(return_annotation.__args__, generic_input_param, input_annotation)
-    if type(return_annotation) in {GenericAlias, _GenericAlias}:
+    if isinstance(return_annotation, (GenericAlias, _GenericAlias)):
         return _format_generic_alias(return_annotation, generic_input_param, input_annotation)
 
     if return_annotation == generic_input_param:
@@ -62,8 +62,8 @@ def _format_return_annotation(
     return str(return_annotation.__name__)
 
 
-def _match_types(generic, specific, ignore_mismatches=False):
-    if type(generic) == TypeVar:
+def _match_types(generic, specific, ignore_mismatches=True):
+    if isinstance(generic, TypeVar):
         return {generic: specific}
 
     specific_origin = get_origin(specific)
@@ -72,13 +72,23 @@ def _match_types(generic, specific, ignore_mismatches=False):
     if specific_origin is None and generic_origin is None:
         return {}
 
-    if specific_origin is None and type(specific) == TypeVar:
+    if specific_origin is None and isinstance(specific, TypeVar):
         return {}
+
+    if specific_origin is Union:
+        for arg in specific.__args__:
+            try:
+                return _match_types(generic, arg, ignore_mismatches)
+            except Exception:
+                continue
+        if ignore_mismatches:
+            return {}
+        raise Exception(f"Type {generic} does not match with any type in union {specific}")
 
     if (specific_origin is None or generic_origin is None) or not issubclass(specific_origin, generic_origin):
         if ignore_mismatches:
             return {}
-        raise ValueError(f"Type {generic} does not match with {specific}")
+        raise Exception(f"Type {generic} does not match with {specific}")
 
     generic_args = getattr(generic, "__args__", None)
     specific_args = getattr(specific, "__args__", None)
@@ -89,17 +99,17 @@ def _match_types(generic, specific, ignore_mismatches=False):
     if generic_args is None:
         if ignore_mismatches:
             return {}
-        raise ValueError(f"Type {generic} in generic has no arguments")
+        raise Exception(f"Type {generic} in generic has no arguments")
 
     if specific_args is None:
         if ignore_mismatches:
             return {}
-        raise ValueError(f"Type {specific} in specific has no arguments")
+        raise Exception(f"Type {specific} in specific has no arguments")
 
     if len(generic_args) != len(specific_args):
         if ignore_mismatches:
             return {}
-        raise ValueError(f"Number of arguments of type {generic} is different in specific type {specific}")
+        raise Exception(f"Number of arguments of type {generic} is different in specific type {specific}")
 
     matches = {}
     for generic_arg, specific_arg in zip(generic_args, specific_args):
@@ -110,7 +120,7 @@ def _match_types(generic, specific, ignore_mismatches=False):
 
 
 def _specify_types(generic, spec):
-    if type(generic) == TypeVar:
+    if isinstance(generic, TypeVar):
         tp = spec.get(generic)
         if tp is None:
             return generic
