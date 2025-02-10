@@ -4,7 +4,7 @@ import types
 import uuid
 from abc import abstractmethod, ABC
 from inspect import Signature
-from typing import TypeVar, overload, cast, Any, Callable, get_origin, get_args
+from typing import TypeVar, overload, cast, Any, Callable, Awaitable, get_origin, get_args
 
 from gloe.base_transformer import (
     TransformerException,
@@ -45,7 +45,7 @@ class AsyncTransformer(BaseTransformer[_In, _Out, "AsyncTransformer"], ABC):
         Args:
             data: the incoming data passed to the transformer during the pipeline execution.
 
-        Returns:
+        Return:
             The outcome data, it means, the result of the transformation.
         """
         pass
@@ -100,14 +100,14 @@ class AsyncTransformer(BaseTransformer[_In, _Out, "AsyncTransformer"], ABC):
         if transform_exception is not None:
             raise transform_exception.internal_exception
 
-        if transformed is not None:
+        if type(transformed) is not None:
             return cast(_Out, transformed)
 
         raise NotImplementedError  # pragma: no cover
 
     def copy(
         self,
-        transform: Callable[[BaseTransformer, _In], Any] | None = None,
+        transform: Callable[[BaseTransformer, _In], Awaitable[_Out]] | None = None,
         regenerate_instance_id: bool = False,
     ) -> "AsyncTransformer[_In, _Out]":
         copied = copy.copy(self)
@@ -122,7 +122,7 @@ class AsyncTransformer(BaseTransformer[_In, _Out, "AsyncTransformer"], ABC):
             copied.instance_id = uuid.uuid4()
 
         if self.previous is not None:
-            if type(self.previous) is tuple:
+            if type(self.previous) == tuple:
                 new_previous: list[BaseTransformer] = [
                     previous_transformer.copy() for previous_transformer in self.previous
                 ]
@@ -221,5 +221,5 @@ class AsyncTransformer(BaseTransformer[_In, _Out, "AsyncTransformer"], ABC):
         pass
 
     def __rshift__(self, next_node):
-        # Placeholder as per the gold code
+        # pragma: no cover
         pass
