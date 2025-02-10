@@ -3,7 +3,21 @@ import types
 import uuid
 import inspect
 from functools import cached_property
-from typing import Any, Callable, Generic, TypeVar, Union, cast, Iterable, Type, TypeAlias
+from inspect import Signature
+from typing import (
+    Any,
+    Callable,
+    Generic,
+    TypeVar,
+    Union,
+    cast,
+    Iterable,
+    get_args,
+    get_origin,
+    TypeAlias,
+    Type,
+    Optional,
+)
 from uuid import UUID
 from itertools import groupby
 import networkx as nx
@@ -33,7 +47,7 @@ class TransformerException(Exception):
         self,
         internal_exception: Exception,
         raiser_transformer: "BaseTransformer",
-        message: str | None = None,
+        message: Optional[str] = None,
     ):
         self.internal_exception = internal_exception
         self.raiser_transformer = raiser_transformer
@@ -42,7 +56,7 @@ class TransformerException(Exception):
         super().__init__(message)
 
     @property
-    def internal_exception(self):
+    def internal_exception(self) -> Exception:
         """Returns the internal exception with traceback."""
         return self.internal_exception.with_traceback(self._traceback)
 
@@ -95,7 +109,7 @@ class BaseTransformer(Generic[_In, _Out]):
 
     def copy(
         self,
-        transform: Callable[[_In], _Out] = None,
+        transform: Optional[Callable[[_In], _Out]] = None,
         regenerate_instance_id: bool = False,
     ) -> "BaseTransformer":
         """Creates a copy of the transformer with optional modifications."""
@@ -144,11 +158,11 @@ class BaseTransformer(Generic[_In, _Out]):
         else:
             self.previous._set_previous(previous)
 
-    def signature(self) -> inspect.Signature:
+    def signature(self) -> Signature:
         """Returns the signature of the transform method."""
         return self._signature(BaseTransformer)
 
-    def _signature(self, klass: Type) -> inspect.Signature:
+    def _signature(self, klass: Type) -> Signature:
         orig_bases = getattr(self, "__orig_bases__", [])
         transformer_args = [
             get_args(base) for base in orig_bases if get_origin(base) == klass
@@ -294,7 +308,7 @@ class BaseTransformer(Generic[_In, _Out]):
     def _dag(
         self,
         net: DiGraph,
-        next_node: "BaseTransformer" = None,
+        next_node: Optional["BaseTransformer"] = None,
         custom_data: dict[str, Any] = {},
     ):
         """Constructs the directed acyclic graph (DAG)."""
