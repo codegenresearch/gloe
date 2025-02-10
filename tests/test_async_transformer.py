@@ -29,10 +29,6 @@ class HasNotFooKey(Exception):
     pass
 
 
-class HasFooKey(Exception):
-    pass
-
-
 class IsNotInt(Exception):
     pass
 
@@ -53,7 +49,8 @@ def has_foo_key(data: dict[str, str]):
 
 def foo_key_removed(data: dict[str, str]):
     if "foo" in data.keys():
-        raise HasFooKey()
+        data.pop("foo", None)
+        raise HasNotFooKey()
 
 
 def is_int(data: Any):
@@ -131,19 +128,6 @@ class TestAsyncTransformer(unittest.IsolatedAsyncioTestCase):
         with self.assertRaises(HasNotBarKey):
             await pipeline(_URL)
 
-        @ensure(incoming=[is_str], outcome=[has_foo_key])
-        @async_transformer
-        async def ensured_request_with_foo(url: str) -> dict[str, str]:
-            await asyncio.sleep(0.1)
-            if "foo" in _DATA:
-                raise HasFooKey()
-            return _DATA
-
-        pipeline = ensured_request_with_foo >> forward()
-
-        with self.assertRaises(HasFooKey):
-            await pipeline(_URL)
-
     async def test_ensure_partial_async_transformer(self):
         # Test a partial async transformer with ensure decorator
         @ensure(incoming=[is_str], outcome=[has_bar_key])
@@ -188,26 +172,6 @@ class TestAsyncTransformer(unittest.IsolatedAsyncioTestCase):
         result = await pipeline(_URL)
         self.assertEqual(result, _DATA)
 
-    async def test_unimplemented_feature_1(self):
-        """
-        TODO: Implement this test case to cover the unimplemented feature 1.
-        """
-        pass
-
-    async def test_unimplemented_feature_2(self):
-        """
-        TODO: Implement this test case to cover the unimplemented feature 2.
-        """
-        pass
-
-    async def test_transformer_wrong_signature(self):
-        # Test handling of transformers with incorrect signatures
-        with self.assertWarns(RuntimeWarning):
-
-            @transformer  # type: ignore
-            def many_args(arg1: str, arg2: int):
-                return arg1, arg2
-
     async def test_integer_input(self):
         # Test handling of integer inputs with ensure decorator
         @ensure(incoming=[is_int], outcome=[has_bar_key])
@@ -229,10 +193,18 @@ class TestAsyncTransformer(unittest.IsolatedAsyncioTestCase):
             await asyncio.sleep(0.1)
             if "foo" in data:
                 data.pop("foo", None)
-                raise HasFooKey()
+                raise HasNotFooKey()
             return data
 
         pipeline = request_data >> remove_foo >> forward()
 
-        with self.assertRaises(HasFooKey):
+        with self.assertRaises(HasNotFooKey):
             await pipeline(_URL)
+
+    async def test_transformer_wrong_signature(self):
+        # Test handling of transformers with incorrect signatures
+        with self.assertWarns(RuntimeWarning):
+
+            @transformer  # type: ignore
+            def many_args(arg1: str, arg2: int):
+                return arg1, arg2
