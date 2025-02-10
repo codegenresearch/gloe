@@ -24,22 +24,24 @@ __all__ = [
 
 A = TypeVar("A")
 S = TypeVar("S")
-P = ParamSpec("P")
+S2 = TypeVar("S2")
+P1 = ParamSpec("P1")
+P2 = ParamSpec("P2")
 O = TypeVar("O")
 
 
-class _PartialTransformer(Generic[A, P, S]):
-    def __init__(self, func: Callable[Concatenate[A, P], S]):
+class _PartialTransformer(Generic[A, P1, S]):
+    def __init__(self, func: Callable[Concatenate[A, P1], S]):
         """
-        Internal class to create partial transformers.
+        Internal class to facilitate the creation of partial transformers.
 
         Args:
             func: A callable that takes a primary argument of type `A` and additional
-                arguments specified by `P`, returning a result of type `S`.
+                arguments specified by `P1`, returning a result of type `S`.
         """
         self.func = func
 
-    def __call__(self, *args: P.args, **kwargs: P.kwargs) -> Transformer[A, S]:
+    def __call__(self, *args: P1.args, **kwargs: P1.kwargs) -> Transformer[A, S]:
         """
         Create a partial transformer by pre-applying some arguments to the function.
 
@@ -94,12 +96,17 @@ class _PartialTransformer(Generic[A, P, S]):
 
 
 def partial_transformer(
-    func: Callable[Concatenate[A, P], S]
-) -> _PartialTransformer[A, P, S]:
+    func: Callable[Concatenate[A, P1], S]
+) -> _PartialTransformer[A, P1, S]:
     """
-    Decorator to create partial transformers, which allow for partial application of
-    their arguments. This is useful for creating configurable transformer instances
-    where some arguments are preset, enhancing modularity and reusability.
+    Decorator to create partial transformers, which are transformers that allow for
+    partial application of their arguments. This capability is particularly useful for
+    creating configurable transformer instances where some arguments are preset, enhancing
+    modularity and reusability in data processing pipelines.
+
+    See Also:
+        For further details on partial transformers and their applications, see
+        :ref:`partial-transformers`.
 
     Example:
         Here's how to apply the `@partial_transformer` decorator to create a transformer
@@ -129,18 +136,18 @@ def partial_transformer(
     return _PartialTransformer(func)
 
 
-class _PartialAsyncTransformer(Generic[A, P, S]):
-    def __init__(self, func: Callable[Concatenate[A, P], Awaitable[S]]):
+class _PartialAsyncTransformer(Generic[A, P1, S]):
+    def __init__(self, func: Callable[Concatenate[A, P1], Awaitable[S]]):
         """
-        Internal class to create partial asynchronous transformers.
+        Internal class to facilitate the creation of partial asynchronous transformers.
 
         Args:
             func: A callable that takes a primary argument of type `A` and additional
-                arguments specified by `P`, returning an awaitable result of type `S`.
+                arguments specified by `P1`, returning an awaitable result of type `S`.
         """
         self.func = func
 
-    def __call__(self, *args: P.args, **kwargs: P.kwargs) -> AsyncTransformer[A, S]:
+    def __call__(self, *args: P1.args, **kwargs: P1.kwargs) -> AsyncTransformer[A, S]:
         """
         Create a partial asynchronous transformer by pre-applying some arguments to the function.
 
@@ -154,7 +161,7 @@ class _PartialAsyncTransformer(Generic[A, P, S]):
         func = self.func
         func_signature = inspect.signature(func)
 
-        class LambdaTransformer(AsyncTransformer[A, S]):
+        class LambdaAsyncTransformer(AsyncTransformer[A, S]):
             """
             Asynchronous transformer class created from a partial function application.
 
@@ -188,20 +195,25 @@ class _PartialAsyncTransformer(Generic[A, P, S]):
                 """
                 return await func(data, *args, **kwargs)
 
-        lambda_transformer = LambdaTransformer()
+        lambda_transformer = LambdaAsyncTransformer()
         lambda_transformer.__class__.__name__ = func.__name__
         lambda_transformer._label = func.__name__
         return lambda_transformer
 
 
 def partial_async_transformer(
-    func: Callable[Concatenate[A, P], Awaitable[S]]
-) -> _PartialAsyncTransformer[A, P, S]:
+    func: Callable[Concatenate[A, P1], Awaitable[S]]
+) -> _PartialAsyncTransformer[A, P1, S]:
     """
-    Decorator to create partial asynchronous transformers, which allow for partial
-    application of their arguments. This is useful for creating reusable asynchronous
-    transformer instances where certain arguments are predetermined, enhancing modularity
-    and reusability.
+    Decorator to enable the creation of partial asynchronous transformers, which are
+    transformers capable of partial argument application. Such functionality is invaluable
+    for crafting reusable asynchronous transformer instances where certain arguments are
+    predetermined, enhancing both modularity and reusability within asynchronous data
+    processing flows.
+
+    See Also:
+        For additional insights into partial asynchronous transformers and their practical
+        applications, consult :ref:`partial-async-transformers`.
 
     Example:
         Utilize the `@partial_async_transformer` decorator to build a transformer with
@@ -225,7 +237,7 @@ def partial_async_transformer(
             `S`.
 
     Returns:
-        An instance of the :code:`_PartialAsyncTransformer`, an internal class
+        An instance of the :code:`_PartialAsyncTransformer`, an internally managed class
         within Gloe designed to facilitate the partial instantiation of asynchronous
         transformers.
     """
@@ -235,6 +247,10 @@ def partial_async_transformer(
 def transformer(func: Callable[[A], S]) -> Transformer[A, S]:
     """
     Convert a callable to an instance of the Transformer class.
+
+    See Also:
+        The most common usage is as a decorator. This example demonstrates how to use the
+        `@transformer` decorator to filter a list of users.
 
     Example:
         The most common use is as a decorator::
@@ -308,6 +324,9 @@ def async_transformer(func: Callable[[A], Awaitable[S]]) -> AsyncTransformer[A, 
     """
     Convert a callable to an instance of the AsyncTransformer class.
 
+    See Also:
+        For more information about this feature, refer to the :ref:`async-transformers`.
+
     Example:
         The most common use is as a decorator::
 
@@ -321,7 +340,7 @@ def async_transformer(func: Callable[[A], Awaitable[S]]) -> AsyncTransformer[A, 
         func: A callable that takes a single argument and returns a coroutine.
 
     Returns:
-        An instance of the AsyncTransformer class, representing the built async
+        Returns an instance of the AsyncTransformer class, representing the built async
         transformer.
     """
     func_signature = inspect.signature(func)
