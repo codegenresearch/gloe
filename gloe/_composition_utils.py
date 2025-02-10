@@ -1,12 +1,12 @@
 import asyncio
 import types
 from inspect import Signature
-from typing import TypeVar, Any, cast, Tuple
+from typing import TypeVar, Any, cast, Tuple, Union
 
 from gloe.async_transformer import AsyncTransformer
 from gloe.base_transformer import BaseTransformer
 from gloe.transformers import Transformer
-from gloe._utils import _match_types, _specify_types, awaitify
+from gloe._utils import _match_types, _specify_types
 from gloe.exceptions import UnsupportedTransformerArgException
 
 _In = TypeVar("_In")
@@ -38,14 +38,14 @@ def _resolve_serial_connection_signatures(transformer2: BaseTransformer, generic
     new_parameter = first_param.replace(annotation=_specify_types(transformer2.input_type, generic_vars))
     return signature2.replace(parameters=[new_parameter], return_annotation=_specify_types(signature2.return_annotation, generic_vars))
 
-def _nerge_serial(transformer1: BaseTransformer, transformer2: BaseTransformer) -> BaseTransformer:
+def _nerge_serial(transformer1: BaseTransformer, _transformer2: BaseTransformer) -> BaseTransformer:
     if transformer1.previous is None:
         transformer1 = transformer1.copy(regenerate_instance_id=True)
-    transformer2 = transformer2.copy(regenerate_instance_id=True)
-    transformer2._set_previous(transformer1)
-    signature1, signature2 = transformer1.signature(), transformer2.signature()
-    input_generic_vars = _match_types(transformer2.input_type, signature1.return_annotation)
-    output_generic_vars = _match_types(signature1.return_annotation, transformer2.input_type)
+    _transformer2 = _transformer2.copy(regenerate_instance_id=True)
+    _transformer2._set_previous(transformer1)
+    signature1, signature2 = transformer1.signature(), _transformer2.signature()
+    input_generic_vars = _match_types(_transformer2.input_type, signature1.return_annotation)
+    output_generic_vars = _match_types(signature1.return_annotation, _transformer2.input_type)
     generic_vars = {**input_generic_vars, **output_generic_vars}
 
     def transformer1_signature(_) -> Signature:
@@ -55,33 +55,33 @@ def _nerge_serial(transformer1: BaseTransformer, transformer2: BaseTransformer) 
 
     class BaseNewTransformer:
         def signature(self) -> Signature:
-            return _resolve_serial_connection_signatures(transformer2, generic_vars, signature2)
+            return _resolve_serial_connection_signatures(_transformer2, generic_vars, signature2)
 
         def __len__(self):
-            return len(transformer1) + len(transformer2)
+            return len(transformer1) + len(_transformer2)
 
-    if is_transformer(transformer1) and is_transformer(transformer2):
+    if is_transformer(transformer1) and is_transformer(_transformer2):
         class NewTransformer1(BaseNewTransformer, Transformer[_In, _NextOut]):
             def transform(self, data: _In) -> _NextOut:
-                return transformer2(transformer1(data))
+                return _transformer2(transformer1(data))
         return NewTransformer1()
-    elif is_async_transformer(transformer1) and is_transformer(transformer2):
+    elif is_async_transformer(transformer1) and is_transformer(_transformer2):
         class NewTransformer2(BaseNewTransformer, AsyncTransformer[_In, _NextOut]):
             async def transform_async(self, data: _In) -> _NextOut:
-                return transformer2(await transformer1(data))
+                return _transformer2(await transformer1(data))
         return NewTransformer2()
-    elif is_async_transformer(transformer1) and is_async_transformer(transformer2):
+    elif is_async_transformer(transformer1) and is_async_transformer(_transformer2):
         class NewTransformer3(BaseNewTransformer, AsyncTransformer[_In, _NextOut]):
             async def transform_async(self, data: _In) -> _NextOut:
-                return await transformer2(await transformer1(data))
+                return await _transformer2(await transformer1(data))
         return NewTransformer3()
-    elif is_transformer(transformer1) and is_async_transformer(transformer2):
+    elif is_transformer(transformer1) and is_async_transformer(_transformer2):
         class NewTransformer4(AsyncTransformer[_In, _NextOut]):
             async def transform_async(self, data: _In) -> _NextOut:
-                return await transformer2(transformer1(data))
+                return await _transformer2(transformer1(data))
         return NewTransformer4()
     else:
-        raise UnsupportedTransformerArgException(transformer2)
+        raise UnsupportedTransformerArgException(_transformer2)
 
 def _merge_diverging(incident_transformer: BaseTransformer, *receiving_transformers: BaseTransformer) -> BaseTransformer:
     if incident_transformer.previous is None:
@@ -123,8 +123,8 @@ def _merge_diverging(incident_transformer: BaseTransformer, *receiving_transform
         new_transformer = NewTransformer1()
     else:
         async def split_result_async(data: _In) -> Tuple[Any, ...]:
-            intermediate_result = await awaitify(incident_transformer)(data)
-            return tuple(await awaitify(t)(intermediate_result) for t in receiving_transformers)
+            intermediate_result = await incident_transformer(data) if asyncio.iscoroutinefunction(incident_transformer.__call__) else incident_transformer(data)
+            return tuple(await t(intermediate_result) if asyncio.iscoroutinefunction(t.__call__) else t(intermediate_result) for t in receiving_transformers)
 
         class NewTransformer2(BaseNewTransformer, AsyncTransformer[_In, Tuple[Any, ...]]):
             async def transform_async(self, data: _In) -> Tuple[Any, ...]:
@@ -137,7 +137,7 @@ def _merge_diverging(incident_transformer: BaseTransformer, *receiving_transform
     new_transformer._graph_node_props = {"shape": "diamond", "width": 0.5, "height": 0.5}
     return new_transformer
 
-def _compose_nodes(current: BaseTransformer, next_node: BaseTransformer | Tuple[BaseTransformer, ...]) -> BaseTransformer:
+def _compose_nodes(current: BaseTransformer, next_node: Union[BaseTransformer, Tuple[BaseTransformer, ...]]) -> BaseTransformer:
     if isinstance(current, BaseTransformer):
         if isinstance(next_node, BaseTransformer):
             return _nerge_serial(current, next_node)
