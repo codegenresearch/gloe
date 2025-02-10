@@ -25,7 +25,7 @@ class HasNotBarKey(Exception):
     pass
 
 
-class HasNotFooKey(Exception):
+class HasFooKey(Exception):
     pass
 
 
@@ -44,13 +44,12 @@ def has_bar_key(data: dict[str, str]):
 
 def has_foo_key(data: dict[str, str]):
     if "foo" not in data.keys():
-        raise HasNotFooKey()
+        raise HasFooKey()
 
 
-def foo_key_removed(data: dict[str, str]):
-    if "foo" in data.keys():
-        data.pop("foo", None)
-        raise HasNotFooKey()
+def foo_key_removed(incoming: dict[str, str], outcome: dict[str, str]):
+    if "foo" in incoming and "foo" not in outcome:
+        raise HasFooKey()
 
 
 def is_int(data: Any):
@@ -193,12 +192,11 @@ class TestAsyncTransformer(unittest.IsolatedAsyncioTestCase):
             await asyncio.sleep(0.1)
             if "foo" in data:
                 data.pop("foo", None)
-                raise HasNotFooKey()
             return data
 
         pipeline = request_data >> remove_foo >> forward()
 
-        with self.assertRaises(HasNotFooKey):
+        with self.assertRaises(HasFooKey):
             await pipeline(_URL)
 
     async def test_transformer_wrong_signature(self):
