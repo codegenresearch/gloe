@@ -17,12 +17,12 @@ class HasNotBarKey(Exception):
     pass
 
 def has_bar_key(data: dict[str, str]) -> None:
-    if "bar" not in data:
-        raise HasNotBarKey()
+    if "bar" not in data.keys():
+        raise HasNotBarKey("Dictionary does not contain the key 'bar'.")
 
 def is_string(data: Any) -> None:
     if not isinstance(data, str):
-        raise ValueError()
+        raise TypeError("Expected a string, but got a different type.")
 
 _URL = "http://my-service"
 
