@@ -1,8 +1,17 @@
 from typing import TypeVar, Union
 from typing_extensions import assert_type
-from gloe import Transformer, AsyncTransformer, async_transformer
+
+from gloe import Transformer, AsyncTransformer, async_transformer, bridge
 from gloe.utils import forward
-from tests.lib.transformers import square, square_root, plus1, minus1, to_string, tuple_concatenate
+
+from tests.lib.transformers import (
+    square,
+    square_root,
+    plus1,
+    minus1,
+    to_string,
+    tuple_concatenate,
+)
 from tests.type_utils.mypy_test_suite import MypyTestSuite
 
 In = TypeVar("In")
@@ -73,6 +82,17 @@ class TestBasicTransformerTypes(MypyTestSuite):
         assert_type(
             graph7, Transformer[float, tuple[str, float, str, float, str, float, str]]
         )
+
+    def test_bridge(self):
+        """
+        Test the bridge functionality
+        """
+
+        num_bridge = bridge[float]("num")
+
+        graph = plus1 >> num_bridge.pick() >> minus1 >> num_bridge.drop()
+
+        assert_type(graph, Transformer[float, tuple[float, float]])
 
     def test_async_transformer(self):
         """
