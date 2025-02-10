@@ -81,6 +81,16 @@ class Transformer(BaseTransformer[I, O, "Transformer"], ABC):
     """
     A Transformer is the generic block with the responsibility to take an input of type
     `T` and transform it to an output of type `S`.
+
+    See Also:
+        Read more about this feature in the page :ref:`creating-a-transformer`.
+
+    Example:
+        Typical usage example::
+
+            class Stringifier(Transformer[dict, str]):
+                ...
+
     """
 
     def __init__(self):
@@ -112,6 +122,7 @@ class Transformer(BaseTransformer[I, O, "Transformer"], ABC):
         except Exception as e:
             tb = traceback.extract_tb(e.__traceback__)
 
+            # TODO: Make this filter condition stronger
             transformer_frames = [
                 frame
                 for frame in tb
@@ -150,6 +161,9 @@ class Transformer(BaseTransformer[I, O, "Transformer"], ABC):
             return True
         origin = get_origin(type_)
         if origin is None:
+            if isinstance(type_, TypeVar):
+                # If type_ is a TypeVar, we assume it's valid
+                return True
             return isinstance(value, type_)
         elif origin is Union:
             return any(self._is_instance_of(value, arg) for arg in get_args(type_))
