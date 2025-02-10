@@ -51,16 +51,16 @@ def foo_key_removed(incoming: dict[str, str], outcome: dict[str, str]):
     if "foo" in outcome:
         raise HasFooKey()
     if "foo" not in incoming:
-        raise HasNotBarKey()  # Changed to raise HasNotBarKey
+        raise HasNotBarKey()
 
 
 def is_str(data: Any):
-    if type(data) is not str:  # Changed to use type(data) is not str
+    if type(data) is not str:
         raise Exception("Data is not a string")
 
 
 def is_int(data: Any):
-    if type(data) is not int:  # Changed to use type(data) is not int
+    if type(data) is not int:
         raise IsNotInt()
 
 
@@ -155,7 +155,7 @@ class TestAsyncTransformer(unittest.IsolatedAsyncioTestCase):
             if "foo" in data:
                 raise HasFooKey()
             if "foo" not in data:
-                raise HasNotBarKey()  # Changed to raise HasNotBarKey
+                raise HasNotBarKey()
             return data
 
         pipeline = request_data >> remove_foo_key >> forward()
@@ -231,7 +231,7 @@ class TestAsyncTransformer(unittest.IsolatedAsyncioTestCase):
             if "foo" in data:
                 raise HasFooKey()
             if "foo" not in data:
-                raise HasNotBarKey()  # Changed to raise HasNotBarKey
+                raise HasNotBarKey()
             return data
 
         pipeline = request_data >> remove_foo_key >> forward()
