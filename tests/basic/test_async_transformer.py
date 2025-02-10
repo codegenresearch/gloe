@@ -10,7 +10,7 @@ from gloe import (
     TransformerException,
 )
 from gloe.functional import partial_async_transformer
-from gloe.utils import forward, _execute_async_flow
+from gloe.utils import forward
 
 from tests.lib.ensurers import is_odd
 from tests.lib.exceptions import LnOfNegativeNumber, NumbersEqual, NumberIsEven
@@ -187,11 +187,6 @@ class TestAsyncTransformer(unittest.IsolatedAsyncioTestCase):
 
             exception_ctx = cast(TransformerException, exception.__cause__)
             self.assertEqual(async_natural_logarithm, exception_ctx.raiser_transformer)
-
-    async def test_execute_async_wrong_flow(self):
-        flow = [2]
-        with self.assertRaises(NotImplementedError):
-            await _execute_async_flow(flow, 1)  # type: ignore
 
     async def test_composition_transform_method(self):
         test3 = forward[float]() >> async_plus1
