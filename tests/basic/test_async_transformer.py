@@ -20,6 +20,16 @@ _In = TypeVar("_In")
 _DATA = {"foo": "bar"}
 _URL = "http://my-service"
 
+@async_transformer
+async def request_data(url: str) -> dict[str, str]:
+    await asyncio.sleep(0.01)
+    return _DATA
+
+class RequestData(AsyncTransformer[str, dict[str, str]]):
+    async def transform_async(self, url: str) -> dict[str, str]:
+        await asyncio.sleep(0.01)
+        return _DATA
+
 class HasNotBarKey(Exception):
     pass
 
@@ -53,16 +63,6 @@ def foo_key_removed(incoming: dict[str, str], outcome: dict[str, str]):
         raise HasNotFooKey()
     if "foo" in outcome.keys():
         raise HasFooKey()
-
-@async_transformer
-async def request_data(url: str) -> dict[str, str]:
-    await asyncio.sleep(0.01)
-    return _DATA
-
-class RequestData(AsyncTransformer[str, dict[str, str]]):
-    async def transform_async(self, url: str) -> dict[str, str]:
-        await asyncio.sleep(0.01)
-        return _DATA
 
 async def raise_an_error():
     await asyncio.sleep(0.1)
