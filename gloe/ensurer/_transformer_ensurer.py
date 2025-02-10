@@ -1,5 +1,5 @@
 import inspect
-from abc import ABC, abstractmethod
+from abc import abstractmethod, ABC
 from typing import Any, Callable, Generic, ParamSpec, Sequence, TypeVar, cast, overload
 from types import FunctionType
 
@@ -72,7 +72,7 @@ def output_ensurer(func: Callable) -> TransformerEnsurer:
     return LambdaEnsurer()
 
 
-class _ensure_base(ABC):
+class _ensure_base:
     @overload
     def __call__(self, transformer: Transformer[_U, _S]) -> Transformer[_U, _S]: pass
 
@@ -185,8 +185,9 @@ class _ensure_changes(Generic[_T, _S], _ensure_base):
 
 class _ensure_both(Generic[_T, _S], _ensure_base):
     def __init__(self, incoming: Sequence[Callable[[_T], Any]], outcome: Sequence[Callable[[_S], Any]], changes: Sequence[Callable[[_T, _S], Any]]):
-        self.input_ensurers_instances = [input_ensurer(ensurer) for ensurer in incoming]
-        self.output_ensurers_instances = [output_ensurer(ensurer) for ensurer in outcome] + [output_ensurer(ensurer) for ensurer in changes]
+        self.input_ensurers_instances = [input_ensurer(ensurer) for ensurer in (incoming if isinstance(incoming, Sequence) else [incoming])]
+        self.output_ensurers_instances = [output_ensurer(ensurer) for ensurer in (outcome if isinstance(outcome, Sequence) else [outcome])]
+        self.output_ensurers_instances.extend([output_ensurer(ensurer) for ensurer in (changes if isinstance(changes, Sequence) else [changes])])
 
     def _generate_new_transformer(self, transformer: Transformer) -> Transformer:
         def transform(_, data):
