@@ -1,7 +1,7 @@
 import asyncio
 import unittest
 from typing import TypeVar, Any
-from gloe import async_transformer, ensure, partial_async_transformer, UnsupportedTransformerArgException
+from gloe import async_transformer, ensure, partial_async_transformer, UnsupportedTransformerArgException, transformer
 from gloe.utils import forward
 
 _In = TypeVar("_In")
@@ -18,7 +18,7 @@ class HasNotBarKey(Exception):
 
 def has_bar_key(d: dict[str, str]) -> None:
     if "bar" not in d:
-        raise HasNotBarKey()
+        raise HasNotBarKey("Dictionary does not contain the key 'bar'")
 
 def is_string(data: Any) -> None:
     if not isinstance(data, str):
@@ -58,7 +58,7 @@ class TestAsyncTransformer(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(result, _DATA)
 
     async def test_ensure_async_transformer(self):
-        @ensure(incoming=[is_string], outcome=[has_bar_key])
+        @ensure(outcome=[has_bar_key])
         @async_transformer
         async def ensured_request(url: str) -> dict[str, str]:
             await asyncio.sleep(0.1)
@@ -69,7 +69,7 @@ class TestAsyncTransformer(unittest.IsolatedAsyncioTestCase):
             await pipeline(_URL)
 
     async def test_ensure_partial_async_transformer(self):
-        @ensure(incoming=[is_string], outcome=[has_bar_key])
+        @ensure(outcome=[has_bar_key])
         @partial_async_transformer
         async def ensured_delayed_request(url: str, delay: float) -> dict[str, str]:
             await asyncio.sleep(delay)
