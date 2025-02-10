@@ -1,7 +1,7 @@
 import asyncio
 import types
-from inspect import Signature, get_origin
-from typing import TypeVar, Any, cast, Tuple, GenericAlias
+from inspect import Signature
+from typing import TypeVar, Any, cast, Tuple, GenericAlias, get_origin
 
 from gloe.async_transformer import AsyncTransformer
 from gloe.base_transformer import BaseTransformer
@@ -14,7 +14,7 @@ _Out = TypeVar("_Out")
 _NextOut = TypeVar("_NextOut")
 
 def is_transformer(node) -> bool:
-    return isinstance(node, Transformer) or (isinstance(node, (list, tuple)) and all(is_transformer(n) for n in node))
+    return type(node) == list or type(node) == tuple or isinstance(node, Transformer)
 
 def is_async_transformer(node) -> bool:
     return isinstance(node, AsyncTransformer)
@@ -80,22 +80,22 @@ def _merge_serial(transformer1: BaseTransformer, transformer2: BaseTransformer) 
     if is_transformer(transformer1) and is_transformer(transformer2):
         class NewTransformer1(BaseNewTransformer, Transformer[_In, _NextOut]):
             def transform(self, data: _In) -> _NextOut:
-                return transformer2.__call__(transformer1.__call__(data))
+                return transformer2(transformer1(data))
         new_transformer = NewTransformer1()
     elif is_async_transformer(transformer1) and is_transformer(transformer2):
         class NewTransformer2(BaseNewTransformer, AsyncTransformer[_In, _NextOut]):
             async def transform_async(self, data: _In) -> _NextOut:
-                return transformer2.__call__(await transformer1.__call__(data))
+                return transformer2(await transformer1(data))
         new_transformer = NewTransformer2()
     elif is_async_transformer(transformer1) and is_async_transformer(transformer2):
         class NewTransformer3(BaseNewTransformer, AsyncTransformer[_In, _NextOut]):
             async def transform_async(self, data: _In) -> _NextOut:
-                return await transformer2.__call__(await transformer1.__call__(data))
+                return await transformer2(await transformer1(data))
         new_transformer = NewTransformer3()
     elif is_transformer(transformer1) and is_async_transformer(transformer2):
         class NewTransformer4(AsyncTransformer[_In, _NextOut]):
             async def transform_async(self, data: _In) -> _NextOut:
-                return await transformer2.__call__(transformer1.__call__(data))
+                return await transformer2(transformer1(data))
         new_transformer = NewTransformer4()
     else:
         raise UnsupportedTransformerArgException(transformer2)
@@ -109,7 +109,7 @@ def _merge_diverging(incident_transformer: BaseTransformer, *receiving_transform
     for t in receiving_transformers:
         t._set_previous(incident_transformer)
     incident_signature = incident_transformer.signature()
-    receiving_signatures = []
+    receiving_signatures: list[Signature] = []
 
     for t in receiving_transformers:
         generic_vars = _match_types(t.input_type, incident_signature.return_annotation)
@@ -134,8 +134,8 @@ def _merge_diverging(incident_transformer: BaseTransformer, *receiving_transform
     new_transformer: BaseTransformer | None = None
     if is_transformer(incident_transformer) and all(is_transformer(t) for t in receiving_transformers):
         def split_result(data: _In) -> Tuple[Any, ...]:
-            intermediate_result = incident_transformer.__call__(data)
-            return tuple(t.__call__(intermediate_result) for t in receiving_transformers)
+            intermediate_result = incident_transformer(data)
+            return tuple(t(intermediate_result) for t in receiving_transformers)
 
         class NewTransformer1(BaseNewTransformer, Transformer[_In, Tuple[Any, ...]]):
             def transform(self, data: _In) -> Tuple[Any, ...]:
@@ -143,13 +143,13 @@ def _merge_diverging(incident_transformer: BaseTransformer, *receiving_transform
         new_transformer = NewTransformer1()
     else:
         async def split_result_async(data: _In) -> Tuple[Any, ...]:
-            intermediate_result = await incident_transformer.__call__(data) if asyncio.iscoroutinefunction(incident_transformer.__call__) else incident_transformer.__call__(data)
+            intermediate_result = await incident_transformer(data) if asyncio.iscoroutinefunction(incident_transformer.__call__) else incident_transformer(data)
             results = []
             for t in receiving_transformers:
                 if asyncio.iscoroutinefunction(t.__call__):
-                    results.append(await t.__call__(intermediate_result))
+                    results.append(await t(intermediate_result))
                 else:
-                    results.append(t.__call__(intermediate_result))
+                    results.append(t(intermediate_result))
             return tuple(results)
 
         class NewTransformer2(BaseNewTransformer, AsyncTransformer[_In, Tuple[Any, ...]]):
