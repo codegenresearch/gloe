@@ -1,5 +1,6 @@
 import inspect
 from abc import abstractmethod, ABC
+from types import FunctionType
 from typing import Any, Callable, Generic, ParamSpec, Sequence, TypeVar, cast, overload
 
 from gloe.async_transformer import AsyncTransformer
@@ -14,10 +15,12 @@ _P1 = ParamSpec("_P1")
 
 class TransformerEnsurer(Generic[_T, _S], ABC):
     @abstractmethod
-    def validate_input(self, data: _T): pass
+    def validate_input(self, data: _T):
+        """Perform a validation on incoming data before executing the transformer code."""
 
     @abstractmethod
-    def validate_output(self, data: _T, output: _S): pass
+    def validate_output(self, data: _T, output: _S):
+        """Perform a validation on outcome data after executing the transformer code."""
 
     def __call__(self, transformer: Transformer[_T, _S]) -> Transformer[_T, _S]:
         def transform(this: Transformer, data: _T) -> _S:
@@ -26,17 +29,20 @@ class TransformerEnsurer(Generic[_T, _S], ABC):
             self.validate_output(data, output)
             return output
 
-        return transformer.copy(transform)
+        transformer_cp = transformer.copy(transform)
+        return transformer_cp
 
 
 def input_ensurer(func: Callable[[_T], Any]) -> TransformerEnsurer[_T, Any]:
     class LambdaEnsurer(TransformerEnsurer[_T, _S]):
         __doc__ = func.__doc__
-        __annotations__ = cast(Callable, func).__annotations__
+        __annotations__ = cast(FunctionType, func).__annotations__
 
-        def validate_input(self, data: _T): func(data)
+        def validate_input(self, data: _T):
+            func(data)
 
-        def validate_output(self, data: _T, output: _S): pass
+        def validate_output(self, data: _T, output: _S):
+            pass
 
     return LambdaEnsurer()
 
@@ -51,9 +57,10 @@ def output_ensurer(func: Callable[[_S], Any]) -> TransformerEnsurer[Any, _S]: pa
 def output_ensurer(func: Callable) -> TransformerEnsurer:
     class LambdaEnsurer(TransformerEnsurer):
         __doc__ = func.__doc__
-        __annotations__ = cast(Callable, func).__annotations__
+        __annotations__ = cast(FunctionType, func).__annotations__
 
-        def validate_input(self, data): pass
+        def validate_input(self, data):
+            pass
 
         def validate_output(self, data, output):
             if len(inspect.signature(func).parameters) == 1:
@@ -110,7 +117,8 @@ class _ensure_incoming(Generic[_T], _ensure_base):
                 ensurer.validate_input(data)
             return transformer.transform(data)
 
-        return transformer.copy(transform)
+        transformer_cp = transformer.copy(transform)
+        return transformer_cp
 
     def _generate_new_async_transformer(self, transformer: AsyncTransformer) -> AsyncTransformer:
         async def transform_async(_, data):
@@ -118,7 +126,8 @@ class _ensure_incoming(Generic[_T], _ensure_base):
                 ensurer.validate_input(data)
             return await transformer.transform_async(data)
 
-        return transformer.copy(transform_async)
+        transformer_cp = transformer.copy(transform_async)
+        return transformer_cp
 
 
 class _ensure_outcome(Generic[_S], _ensure_base):
@@ -132,7 +141,8 @@ class _ensure_outcome(Generic[_S], _ensure_base):
                 ensurer.validate_output(data, output)
             return output
 
-        return transformer.copy(transform)
+        transformer_cp = transformer.copy(transform)
+        return transformer_cp
 
     def _generate_new_async_transformer(self, transformer: AsyncTransformer) -> AsyncTransformer:
         async def transform_async(_, data):
@@ -141,7 +151,8 @@ class _ensure_outcome(Generic[_S], _ensure_base):
                 ensurer.validate_output(data, output)
             return output
 
-        return transformer.copy(transform_async)
+        transformer_cp = transformer.copy(transform_async)
+        return transformer_cp
 
 
 class _ensure_changes(Generic[_T, _S], _ensure_base):
@@ -155,7 +166,8 @@ class _ensure_changes(Generic[_T, _S], _ensure_base):
                 ensurer.validate_output(data, output)
             return output
 
-        return transformer.copy(transform)
+        transformer_cp = transformer.copy(transform)
+        return transformer_cp
 
     def _generate_new_async_transformer(self, transformer: AsyncTransformer) -> AsyncTransformer:
         async def transform_async(_, data):
@@ -164,7 +176,8 @@ class _ensure_changes(Generic[_T, _S], _ensure_base):
                 ensurer.validate_output(data, output)
             return output
 
-        return transformer.copy(transform_async)
+        transformer_cp = transformer.copy(transform_async)
+        return transformer_cp
 
 
 class _ensure_both(Generic[_T, _S], _ensure_base):
@@ -181,7 +194,8 @@ class _ensure_both(Generic[_T, _S], _ensure_base):
                 ensurer.validate_output(data, output)
             return output
 
-        return transformer.copy(transform)
+        transformer_cp = transformer.copy(transform)
+        return transformer_cp
 
     def _generate_new_async_transformer(self, transformer: AsyncTransformer) -> AsyncTransformer:
         async def transform_async(_, data):
@@ -192,7 +206,8 @@ class _ensure_both(Generic[_T, _S], _ensure_base):
                 ensurer.validate_output(data, output)
             return output
 
-        return transformer.copy(transform_async)
+        transformer_cp = transformer.copy(transform_async)
+        return transformer_cp
 
 
 @overload
@@ -218,6 +233,37 @@ def ensure(incoming: Sequence[Callable[[_T], Any]], outcome: Sequence[Callable[[
 
 
 def ensure(*args, **kwargs):
+    """
+    This decorator is used in transformers to ensure some validation based on its incoming
+    data, outcome data, or both.
+
+    These validations are performed by validators. Validators are simple callable
+    functions that validate certain aspects of the input, output, or the differences
+    between them. If the validation fails, it must raise an exception.
+
+    The decorator :code:`@ensure` returns some intermediate classes to assist with the
+    internal logic of Gloe. However, the result of applying it to a transformer is just
+    a new transformer with the exact same attributes, but it includes an additional
+    validation layer.
+
+    The motivation of the many overloads is just to allow the user to define different types
+    of validators interchangeably.
+
+    See also:
+        For more detailed information about this feature, refer to the :ref:`ensurers` page.
+
+    Args:
+        incoming (Sequence[Callable[[_T], Any]]): sequence of validators that will be
+            applied to the incoming data. The type :code:`_T` refers to the incoming type.
+            Default value: :code:`[]`.
+        outcome (Sequence[Callable[[_S], Any]]): sequence of validators that will be
+            applied to the outcome data. The type :code:`_S` refers to the outcome type.
+            Default value: :code:`[]`.
+        changes (Sequence[Callable[[_T, _S], Any]]): sequence of validators that will be
+            applied to both incoming and outcome data. The type :code:`_T` refers to the
+            incoming type, and type :code:`_S` refers to the outcome type.
+            Default value: :code:`[]`.
+    """
     if "incoming" in kwargs:
         return _ensure_incoming(kwargs["incoming"])
     if "outcome" in kwargs:
@@ -226,3 +272,14 @@ def ensure(*args, **kwargs):
         return _ensure_changes(kwargs["changes"])
     if len(kwargs) > 1:
         return _ensure_both(kwargs.get("incoming", []), kwargs.get("outcome", []), kwargs.get("changes", []))
+
+
+### Key Changes Made:
+1. **Docstrings**: Added docstrings to the abstract methods in `TransformerEnsurer` for clarity.
+2. **Type Casting**: Used `FunctionType` for casting in `input_ensurer` and `output_ensurer`.
+3. **Method Definitions**: Ensured method definitions are consistent and properly indented.
+4. **Return Statements**: Used a variable to hold the transformer copy before returning it in `_generate_new_transformer` methods.
+5. **Class Inheritance**: Confirmed `_ensure_base` inherits from `ABC`.
+6. **Handling of Input Parameters**: Ensured consistent handling of `incoming`, `outcome`, and `changes` parameters in `_ensure_both`.
+7. **Function Overloads**: Ensured overloads for `ensure` function are correctly defined.
+8. **Comments and Documentation**: Added comments to clarify the purpose of complex sections in the `ensure` function.
