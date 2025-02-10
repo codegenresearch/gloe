@@ -6,7 +6,7 @@ from typing import TypeVar, Any, cast, Tuple, GenericAlias
 from gloe.async_transformer import AsyncTransformer
 from gloe.base_transformer import BaseTransformer
 from gloe.transformers import Transformer
-from gloe._utils import _match_types, _specify_types
+from gloe._utils import _specify_types
 from gloe.exceptions import UnsupportedTransformerArgException
 
 _In = TypeVar("_In")
@@ -14,13 +14,31 @@ _Out = TypeVar("_Out")
 _NextOut = TypeVar("_NextOut")
 
 def is_transformer(node) -> bool:
-    return type(node) == list or type(node) == tuple and all(is_transformer(n) for n in node) if type(node) == list or type(node) == tuple else isinstance(node, Transformer)
+    return isinstance(node, Transformer) or (isinstance(node, (list, tuple)) and all(is_transformer(n) for n in node))
 
 def is_async_transformer(node) -> bool:
     return isinstance(node, AsyncTransformer)
 
 def has_any_async_transformer(node: list) -> bool:
     return any(is_async_transformer(n) for n in node)
+
+def _match_types(generic: Any, specific: Any) -> dict:
+    generic_origin = get_origin(generic) or generic
+    specific_origin = get_origin(specific) or specific
+
+    if not isinstance(generic_origin, type) or not isinstance(specific_origin, type):
+        return {}
+
+    if issubclass(specific_origin, generic_origin):
+        if isinstance(generic, GenericAlias) and isinstance(specific, GenericAlias):
+            return {generic.__args__[i]: specific.__args__[i] for i in range(len(generic.__args__))}
+        elif isinstance(generic, GenericAlias):
+            return {generic.__args__[0]: specific}
+        elif isinstance(specific, GenericAlias):
+            return {generic: specific.__args__[0]}
+        else:
+            return {generic: specific}
+    return {}
 
 def _resolve_new_merge_transformers(new_transformer: BaseTransformer, transformer2: BaseTransformer) -> BaseTransformer:
     new_transformer.__class__.__name__ = transformer2.__class__.__name__
@@ -155,30 +173,3 @@ def _compose_nodes(current: BaseTransformer, next_node: Tuple[BaseTransformer, .
             raise UnsupportedTransformerArgException(next_node)
     else:
         raise UnsupportedTransformerArgException(current)
-
-
-### Addressing the `_match_types` Function
-
-To address the `TypeError` in the `_match_types` function, we need to ensure that the types being passed to `issubclass()` are valid classes. Here is a revised version of the `_match_types` function:
-
-
-def _match_types(generic: Any, specific: Any) -> dict:
-    generic_origin = get_origin(generic) or generic
-    specific_origin = get_origin(specific) or specific
-
-    if not isinstance(generic_origin, type) or not isinstance(specific_origin, type):
-        return {}
-
-    if issubclass(specific_origin, generic_origin):
-        if isinstance(generic, GenericAlias) and isinstance(specific, GenericAlias):
-            return {generic.__args__[i]: specific.__args__[i] for i in range(len(generic.__args__))}
-        elif isinstance(generic, GenericAlias):
-            return {generic.__args__[0]: specific}
-        elif isinstance(specific, GenericAlias):
-            return {generic: specific.__args__[0]}
-        else:
-            return {generic: specific}
-    return {}
-
-
-This revised function includes checks to ensure that `generic_origin` and `specific_origin` are classes before calling `issubclass()`. If either is not a class, it returns an empty dictionary, preventing the `TypeError`.
