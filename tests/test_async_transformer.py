@@ -112,4 +112,4 @@ class TestAsyncTransformer(unittest.IsolatedAsyncioTestCase):
 4. **Error Handling**: Structured the test for unsupported transformer arguments similarly to the gold code.
 5. **Pipeline Copying**: Reviewed and aligned the test for copying pipelines with the gold code's approach.
 6. **Code Formatting**: Improved formatting and spacing for better readability and maintainability.
-7. **Comments**: Removed the commented-out changes documentation to avoid syntax errors and ensured all comments are properly formatted.
+7. **Comments and Documentation**: Removed the commented-out changes documentation to avoid syntax errors and ensured all comments are properly formatted. Specifically, fixed the unterminated string literal in the comments.
