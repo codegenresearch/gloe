@@ -81,16 +81,6 @@ class Transformer(BaseTransformer[I, O, "Transformer"], ABC):
     """
     A Transformer is the generic block with the responsibility to take an input of type
     `T` and transform it to an output of type `S`.
-
-    See Also:
-        Read more about this feature in the page :ref:`creating-a-transformer`.
-
-    Example:
-        Typical usage example::
-
-            class Stringifier(Transformer[dict, str]):
-                ...
-
     """
 
     def __init__(self):
@@ -150,7 +140,7 @@ class Transformer(BaseTransformer[I, O, "Transformer"], ABC):
         if transform_exception is not None:
             raise transform_exception.internal_exception
 
-        if transformed is not None:
+        if type(transformed) is not None:
             return cast(O, transformed)
 
         raise NotImplementedError("Transform method did not return a value")  # pragma: no cover
