@@ -1,5 +1,6 @@
 import traceback
 from abc import ABC, abstractmethod
+from inspect import Signature
 from typing import (
     TypeVar,
     overload,
