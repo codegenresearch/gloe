@@ -42,53 +42,66 @@ class IsNotInt(Exception):
     pass
 
 def has_bar_key(data: dict[str, str]):
-    if "bar" not in data:
+    if "bar" not in data.keys():
         raise HasNotBarKey()
 
 def has_foo_key(data: dict[str, str]):
-    if "foo" not in data:
-        raise HasNotFooKey()
+    if "foo" not in data.keys():
+        raise HasNotBarKey()
 
 def is_int(data: Any):
-    if not isinstance(data, int):
+    if type(data) is not int:
         raise IsNotInt()
 
 def is_str(data: Any):
-    if not isinstance(data, str):
+    if type(data) is not str:
         raise Exception("data is not string")
 
 def foo_key_removed(incoming: dict[str, str], outcome: dict[str, str]):
-    if "foo" not in incoming:
+    if "foo" not in incoming.keys():
         raise HasNotFooKey()
-    if "foo" in outcome:
+    if "foo" in outcome.keys():
         raise HasFooKey()
 
 async def raise_an_error():
     await asyncio.sleep(0.1)
     raise NotImplementedError()
 
+async def _execute_async_flow(flow, data):
+    for step in flow:
+        if callable(step):
+            data = await step(data)
+        else:
+            raise NotImplementedError("Unsupported step in flow")
+    return data
+
 class TestAsyncTransformer(unittest.IsolatedAsyncioTestCase):
     async def test_basic_case(self):
+        # Test basic transformation
         test_forward = request_data >> forward()
         result = await test_forward(_URL)
         self.assertDictEqual(_DATA, result)
 
     async def test_begin_with_transformer(self):
+        # Test starting with a transformer
         test_forward = forward[str]() >> request_data
         result = await test_forward(_URL)
         self.assertDictEqual(_DATA, result)
 
     async def test_async_on_divergent_connection(self):
+        # Test divergent connection starting with a transformer
         test_forward = forward[str]() >> (forward[str](), request_data)
         result = await test_forward(_URL)
         self.assertEqual((_URL, _DATA), result)
 
     async def test_divergent_connection_from_async(self):
+        # Test divergent connection from an async transformer
         test_forward = request_data >> (forward[dict[str, str]](), forward[dict[str, str]]())
         result = await test_forward(_URL)
         self.assertEqual((_DATA, _DATA), result)
 
     async def test_async_transformer_wrong_arg(self):
+        # Test handling wrong argument type
         def next_transformer():
             pass
 
@@ -102,6 +115,7 @@ class TestAsyncTransformer(unittest.IsolatedAsyncioTestCase):
             ensured_delayed_request(0.01) >> next_transformer  # type: ignore
 
     async def test_async_transformer_copy(self):
+        # Test copying a pipeline
         @transformer
         def add_slash(path: str) -> str:
             return path + "/"
@@ -117,6 +131,7 @@ class TestAsyncTransformer(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(_DATA, result)
 
     def test_async_transformer_wrong_signature(self):
+        # Test warning for wrong signature
         with self.assertWarns(RuntimeWarning):
             @async_transformer  # type: ignore
             async def many_args(arg1: str, arg2: int):
@@ -124,10 +139,12 @@ class TestAsyncTransformer(unittest.IsolatedAsyncioTestCase):
                 return arg1, arg2
 
     def test_async_transformer_signature_representation(self):
+        # Test signature representation
         signature = request_data.signature()
         self.assertEqual(str(signature), "(url: str) -> dict[str, str]")
 
     def test_async_transformer_representation(self):
+        # Test transformer representation
         self.assertEqual(repr(request_data), "str -> (request_data) -> dict[str, str]")
         class_request_data = RequestData()
         self.assertEqual(repr(class_request_data), "str -> (RequestData) -> dict[str, str]")
@@ -140,6 +157,7 @@ class TestAsyncTransformer(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(repr(request_and_serialize), "dict -> (2 transformers omitted) -> str")
 
     async def test_exhausting_large_flow(self):
+        # Test large flow execution
         graph = async_plus1
         max_iters = 1500
         for _ in range(max_iters):
@@ -149,6 +167,7 @@ class TestAsyncTransformer(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(result, max_iters + 1)
 
     async def test_async_transformer_error_handling(self):
+        # Test error handling in async transformer
         async_graph = async_plus1 >> async_natural_logarithm
         try:
             await async_graph(-2)
@@ -158,11 +177,13 @@ class TestAsyncTransformer(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(async_natural_logarithm, exception_ctx.raiser_transformer)
 
     async def test_execute_async_wrong_flow(self):
+        # Test executing async flow with wrong steps
         flow = [2]
         with self.assertRaises(NotImplementedError):
             await _execute_async_flow(flow, 1)  # type: ignore
 
     async def test_composition_transform_method(self):
+        # Test composition transform method
         test3 = forward[float]() >> async_plus1
         result = await test3.transform_async(5)
         self.assertIsNone(result)
