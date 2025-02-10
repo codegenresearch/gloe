@@ -17,7 +17,7 @@ class HasNotBarKey(Exception):
     pass
 
 def has_bar_key(data: dict[str, str]) -> None:
-    if "bar" not in data.keys():
+    if "bar" not in data:
         raise HasNotBarKey("Dictionary does not contain the key 'bar'.")
 
 def is_string(data: Any) -> None:
