@@ -46,7 +46,7 @@ class AsyncTransformer(BaseTransformer[_In, _Out, "AsyncTransformer"], ABC):
             data: the incoming data passed to the transformer during the pipeline execution.
 
         Return:
-            The outcome data, it means, the result of the transformation.
+            The result of the transformation.
         """
         pass
 
@@ -63,7 +63,7 @@ class AsyncTransformer(BaseTransformer[_In, _Out, "AsyncTransformer"], ABC):
         try:
             transformed = await self.transform_async(data)
         except Exception as exception:
-            if isinstance(exception.__cause__, TransformerException):
+            if type(exception.__cause__) is TransformerException:
                 transform_exception = exception.__cause__
             else:
                 tb = traceback.extract_tb(exception.__traceback__)
@@ -97,7 +97,7 @@ class AsyncTransformer(BaseTransformer[_In, _Out, "AsyncTransformer"], ABC):
         if transform_exception is not None:
             raise transform_exception.internal_exception
 
-        if transformed is not None:
+        if type(transformed) is not None:
             return cast(_Out, transformed)
 
         raise NotImplementedError  # pragma: no cover
@@ -112,14 +112,12 @@ class AsyncTransformer(BaseTransformer[_In, _Out, "AsyncTransformer"], ABC):
         func_type = types.MethodType
         if transform is not None:
             setattr(copied, "transform_async", func_type(transform, copied))
-        else:
-            setattr(copied, "transform_async", func_type(self.transform_async, copied))
 
         if regenerate_instance_id:
             copied.instance_id = uuid.uuid4()
 
         if self.previous is not None:
-            if isinstance(self.previous, tuple):
+            if type(self.previous) == tuple:
                 new_previous: list[BaseTransformer] = [
                     previous_transformer.copy() for previous_transformer in self.previous
                 ]
@@ -218,6 +216,4 @@ class AsyncTransformer(BaseTransformer[_In, _Out, "AsyncTransformer"], ABC):
         pass
 
     def __rshift__(self, next_node):
-        from gloe._composition_utils import _compose_nodes
-
-        return _compose_nodes(self, next_node)  # pragma: no cover
+        pass  # pragma: no cover
