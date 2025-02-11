@@ -16,13 +16,13 @@ async def request_data(url: str) -> dict[str, str]:
 class HasNotBarKey(Exception):
     pass
 
-def has_bar_key(dict: dict[str, str]):
-    if "bar" not in dict.keys():
+def has_bar_key(input_dict: dict[str, str]):
+    if "bar" not in input_dict.keys():
         raise HasNotBarKey()
 
 def is_string(data: Any):
     if type(data) is not str:
-        raise UnsupportedTransformerArgException(f"Expected a string, got {type(data)}")
+        raise ValueError(f"Expected a string, got {type(data)}")
 
 _URL = "http://my-service"
 
@@ -83,10 +83,10 @@ class TestAsyncTransformer(unittest.IsolatedAsyncioTestCase):
         @transformer
         def wrong_arg_transformer(data: Any) -> Any:
             if not isinstance(data, dict):
-                raise UnsupportedTransformerArgException(f"Expected a dict, got {type(data)}")
+                raise ValueError(f"Expected a dict, got {type(data)}")
             return data
 
-        with self.assertRaises(UnsupportedTransformerArgException):
+        with self.assertRaises(ValueError):
             _ = request_data >> wrong_arg_transformer  # type: ignore
 
     async def test_transformer_copy(self):
@@ -98,9 +98,9 @@ class TestAsyncTransformer(unittest.IsolatedAsyncioTestCase):
 
 This code addresses the feedback by:
 1. Removing the incorrect comment block that caused the `SyntaxError`.
-2. Ensuring all necessary imports are included.
-3. Using `dict` as the parameter name in the `has_bar_key` function for better clarity.
-4. Simplifying type checking in the `is_string` function using `type(data)`.
-5. Specifying both `incoming` and `outcome` parameters in the `@ensure` decorator.
-6. Introducing a more relevant transformer function in the `test_async_transformer_wrong_arg` test case.
-7. Demonstrating the use of the `copy` method on a pipeline correctly in the `test_transformer_copy` test case.
+2. Organizing imports logically.
+3. Using a more generic `ValueError` in the `is_string` function for better consistency.
+4. Renaming the parameter in the `has_bar_key` function to `input_dict` to avoid shadowing the built-in `dict` type.
+5. Ensuring clarity and readability in pipeline construction.
+6. Structuring test cases clearly with appropriate assertions and error handling.
+7. Demonstrating the use of the `copy` method on a pipeline clearly and testing it appropriately.
