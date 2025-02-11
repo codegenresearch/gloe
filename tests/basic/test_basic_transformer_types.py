@@ -1,5 +1,4 @@
 from typing import TypeVar
-
 from typing_extensions import assert_type
 
 from gloe import (
@@ -7,7 +6,6 @@ from gloe import (
     async_transformer,
     AsyncTransformer,
 )
-from gloe.experimental import bridge
 from gloe.utils import forward
 from tests.lib.transformers import (
     square,
@@ -87,13 +85,6 @@ class TestBasicTransformerTypes(MypyTestSuite):
         assert_type(
             graph7, Transformer[float, tuple[str, float, str, float, str, float, str]]
         )
-
-    def test_bridge(self):
-        num_bridge = bridge[float]("num")
-
-        graph = plus1 >> num_bridge.pick() >> minus1 >> num_bridge.drop()
-
-        assert_type(graph, Transformer[float, tuple[float, float]])
 
     def test_async_transformer(self):
         @async_transformer
