@@ -26,11 +26,6 @@ class forward(Generic[_In], Transformer[_In, _In]):
         super().__init__()
         self._invisible = True
 
-    def __repr__(self) -> str:
-        if self.previous is not None:
-            return str(self.previous)
-        return super().__repr__()
-
     def transform(self, data: _In) -> _In:
         return data
 
@@ -38,4 +33,4 @@ class forward(Generic[_In], Transformer[_In, _In]):
 def forward_incoming(
     inner_transformer: Transformer[_In, _Out]
 ) -> Transformer[_In, Tuple[_Out, _In]]:
-    return forward() >> (inner_transformer, forward())
+    return forward[_In]() >> (inner_transformer, forward[_In]())
