@@ -3,11 +3,6 @@ from types import GenericAlias
 from typing import (
     TypeVar,
     get_origin,
-    TypeAlias,
-    TypedDict,
-    Generic,
-    Union,
-    _GenericAlias,
     ParamSpec,
     Callable,
     Awaitable,
@@ -18,7 +13,7 @@ from typing import (
 def _format_tuple(
     tuple_annotation: tuple, generic_input_param, input_annotation
 ) -> str:
-    formatted = []
+    formatted: list[str] = []
     for annotation in tuple_annotation:
         formatted.append(
             _format_return_annotation(annotation, generic_input_param, input_annotation)
@@ -29,7 +24,7 @@ def _format_tuple(
 def _format_union(
     tuple_annotation: tuple, generic_input_param, input_annotation
 ) -> str:
-    formatted = []
+    formatted: list[str] = []
     for annotation in tuple_annotation:
         formatted.append(
             _format_return_annotation(annotation, generic_input_param, input_annotation)
@@ -41,7 +36,7 @@ def _format_generic_alias(
     return_annotation: GenericAlias, generic_input_param, input_annotation
 ) -> str:
     alias_name = return_annotation.__name__
-    formatted = []
+    formatted: list[str] = []
     for annotation in return_annotation.__args__:
         formatted.append(
             _format_return_annotation(annotation, generic_input_param, input_annotation)
@@ -66,16 +61,15 @@ def _format_return_annotation(
         )
     if (
         type(return_annotation) == GenericAlias
-        or type(return_annotation) == _GenericAlias
     ):
         return _format_generic_alias(
             return_annotation, generic_input_param, input_annotation
         )
 
     if return_annotation == generic_input_param:
-        return str(input_annotation.__name__)
+        return input_annotation.__name__
 
-    return str(return_annotation.__name__)
+    return return_annotation.__name__
 
 
 def _match_types(generic, specific, ignore_mismatches=True):
@@ -93,29 +87,29 @@ def _match_types(generic, specific, ignore_mismatches=True):
     ):
         if ignore_mismatches:
             return {}
-        raise Exception(f"Type {str(generic)} does not match with {str(specific)}")
+        raise Exception(f"Type {generic} does not match with {specific}")
 
     generic_args = getattr(generic, "__args__", None)
     specific_args = getattr(specific, "__args__", None)
 
-    if specific_args is None and specific_args is None:
+    if specific_args is None and generic_args is None:
         return {}
 
     if generic_args is None:
         if ignore_mismatches:
             return {}
-        raise Exception(f"Type {str(generic)} in generic has no arguments")
+        raise Exception(f"Type {generic} in generic has no arguments")
 
     if specific_args is None:
         if ignore_mismatches:
             return {}
-        raise Exception(f"Type {str(specific)} in specific has no arguments")
+        raise Exception(f"Type {specific} in specific has no arguments")
 
     if len(generic_args) != len(specific_args):
         if ignore_mismatches:
             return {}
         raise Exception(
-            f"Number of arguments of type {str(generic)} is different in specific type {str(specific)}"
+            f"Number of arguments of type {generic} is different in specific type {specific}"
         )
 
     matches = {}
