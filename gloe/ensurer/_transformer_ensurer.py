@@ -1,6 +1,5 @@
 import inspect
 from abc import abstractmethod, ABC
-from types import FunctionType
 from typing import Any, Callable, Generic, ParamSpec, Sequence, TypeVar, cast, overload
 
 from gloe.async_transformer import AsyncTransformer
@@ -14,27 +13,31 @@ _P1 = ParamSpec("_P1")
 
 
 class TransformerEnsurer(Generic[_T, _S], ABC):
-    @abstractmethod
-    def validate_input(self, data: _T):
-        """Perform a validation on incoming data before execute the transformer code"""
+    def __init__(self, input_validator: Callable[[_T], Any] = None, output_validator: Callable[[_T, _S], Any] = None):
+        self.input_validator = input_validator
+        self.output_validator = output_validator
 
-    @abstractmethod
+    def validate_input(self, data: _T):
+        if self.input_validator:
+            self.input_validator(data)
+
     def validate_output(self, data: _T, output: _S):
-        """Perform a validation on outcome data after execute the transformer code"""
+        if self.output_validator:
+            self.output_validator(data, output)
+
+    def __call__(self, transformer: Transformer[_T, _S]) -> Transformer[_T, _S]:
+        def transform(this: Transformer, data: _T) -> _S:
+            self.validate_input(data)
+            output = transformer.transform(data)
+            self.validate_output(data, output)
+            return output
+
+        transformer_cp = transformer.copy(transform)
+        return transformer_cp
 
 
 def input_ensurer(func: Callable[[_T], Any]) -> TransformerEnsurer[_T, Any]:
-    class LambdaEnsurer(TransformerEnsurer[_T, _S]):
-        __doc__ = func.__doc__
-        __annotations__ = cast(FunctionType, func).__annotations__
-
-        def validate_input(self, data: _T):
-            func(data)
-
-        def validate_output(self, data: _T, output: _S):
-            pass
-
-    return LambdaEnsurer()
+    return TransformerEnsurer(input_validator=func)
 
 
 @overload
@@ -48,20 +51,13 @@ def output_ensurer(func: Callable[[_S], Any]) -> TransformerEnsurer[Any, _S]:
 
 
 def output_ensurer(func: Callable):
-    class LambdaEnsurer(TransformerEnsurer):
-        __doc__ = func.__doc__
-        __annotations__ = cast(FunctionType, func).__annotations__
+    def validate_output(data, output):
+        if len(inspect.signature(func).parameters) == 1:
+            func(output)
+        else:
+            func(data, output)
 
-        def validate_input(self, data):
-            pass
-
-        def validate_output(self, data, output):
-            if len(inspect.signature(func).parameters) == 1:
-                func(output)
-            else:
-                func(data, output)
-
-    return LambdaEnsurer()
+    return TransformerEnsurer(output_validator=validate_output)
 
 
 class _ensure_base:
@@ -147,8 +143,8 @@ class _ensure_incoming(Generic[_T], _ensure_base):
 
 
 class _ensure_outcome(Generic[_S], _ensure_base):
-    def __init__(self, incoming: Sequence[Callable[[_S], Any]]):
-        self.output_ensurers_instances = [output_ensurer(ensurer) for ensurer in incoming]
+    def __init__(self, outcome: Sequence[Callable[[_S], Any]]):
+        self.output_ensurers_instances = [output_ensurer(ensurer) for ensurer in outcome]
 
     def _generate_new_transformer(self, transformer: Transformer) -> Transformer:
         def transform(_, data):
@@ -211,20 +207,17 @@ class _ensure_both(Generic[_T, _S], _ensure_base):
         outcome: Sequence[Callable[[_S], Any]],
         changes: Sequence[Callable[[_T, _S], Any]],
     ):
-        incoming_seq = incoming if type(incoming) == list else [incoming]
         self.input_ensurers_instances = [
-            input_ensurer(ensurer) for ensurer in incoming_seq
+            input_ensurer(ensurer) for ensurer in incoming
         ]
 
-        outcome_seq = outcome if type(outcome) == list else [outcome]
         self.output_ensurers_instances = [
-            output_ensurer(ensurer) for ensurer in outcome_seq
+            output_ensurer(ensurer) for ensurer in outcome
         ]
 
-        changes_seq = changes if type(changes) == list else [changes]
-        self.output_ensurers_instances = self.output_ensurers_instances + [
-            output_ensurer(ensurer) for ensurer in changes_seq
-        ]
+        self.output_ensurers_instances.extend(
+            output_ensurer(ensurer) for ensurer in changes
+        )
 
     def _generate_new_transformer(self, transformer: Transformer) -> Transformer:
         def transform(_, data):
@@ -330,26 +323,8 @@ def ensure(*args, **kwargs):
             incoming type, and type :code:`_S` refers to the outcome type.
             Defaut value: :code:`[]`.
     """
-    if len(kwargs.keys()) == 1 and "incoming" in kwargs:
-        return _ensure_incoming(kwargs["incoming"])
+    incoming = kwargs.get("incoming", [])
+    outcome = kwargs.get("outcome", [])
+    changes = kwargs.get("changes", [])
 
-    if len(kwargs.keys()) == 1 and "outcome" in kwargs:
-        return _ensure_outcome(kwargs["outcome"])
-
-    if len(kwargs.keys()) == 1 and "changes" in kwargs:
-        return _ensure_changes(kwargs["changes"])
-
-    if len(kwargs.keys()) > 1:
-        incoming = []
-        if "incoming" in kwargs:
-            incoming = kwargs["incoming"]
-
-        outcome = []
-        if "outcome" in kwargs:
-            outcome = kwargs["outcome"]
-
-        changes = []
-        if "changes" in kwargs:
-            changes = kwargs["changes"]
-
-        return _ensure_both(incoming, outcome, changes)
+    return _ensure_both(incoming, outcome, changes)
