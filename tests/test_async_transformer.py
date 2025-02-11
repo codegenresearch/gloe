@@ -25,14 +25,54 @@ class HasNotBarKey(Exception):
     pass
 
 
+class HasNotFooKey(Exception):
+    pass
+
+
+class HasFooKey(Exception):
+    pass
+
+
+class IsNotInt(Exception):
+    pass
+
+
+class IsNotStr(Exception):
+    pass
+
+
+class FooKeyRemoved(Exception):
+    pass
+
+
 def has_bar_key(data: dict[str, str]) -> None:
     if "bar" not in data:
         raise HasNotBarKey()
 
 
-def is_string(data: Any) -> None:
+def has_foo_key(data: dict[str, str]) -> None:
+    if "foo" not in data:
+        raise HasNotFooKey()
+
+
+def has_no_foo_key(data: dict[str, str]) -> None:
+    if "foo" in data:
+        raise HasFooKey()
+
+
+def is_int(data: Any) -> None:
+    if not isinstance(data, int):
+        raise IsNotInt()
+
+
+def is_str(data: Any) -> None:
     if not isinstance(data, str):
-        raise Exception("Data is not a string")
+        raise IsNotStr()
+
+
+def foo_key_removed(data: dict[str, str]) -> None:
+    if "foo" in data:
+        raise FooKeyRemoved()
 
 
 _URL = "http://my-service"
@@ -83,7 +123,7 @@ class TestAsyncTransformer(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(result, _DATA)
 
     async def test_ensure_async_transformer(self):
-        @ensure(incoming=[is_string], outcome=[has_bar_key])
+        @ensure(incoming=[is_str], outcome=[has_bar_key])
         @async_transformer
         async def ensured_request(url: str) -> dict[str, str]:
             await asyncio.sleep(0.1)
@@ -95,7 +135,7 @@ class TestAsyncTransformer(unittest.IsolatedAsyncioTestCase):
             await pipeline(_URL)
 
     async def test_ensure_partial_async_transformer(self):
-        @ensure(incoming=[is_string], outcome=[has_bar_key])
+        @ensure(incoming=[is_str], outcome=[has_bar_key])
         @partial_async_transformer
         async def ensured_delayed_request(url: str, delay: float) -> dict[str, str]:
             await asyncio.sleep(delay)
@@ -110,7 +150,7 @@ class TestAsyncTransformer(unittest.IsolatedAsyncioTestCase):
         def next_transformer():
             pass
 
-        @ensure(incoming=[is_string], outcome=[has_bar_key])
+        @ensure(incoming=[is_str], outcome=[has_bar_key])
         @partial_async_transformer
         async def ensured_delayed_request(url: str, delay: float) -> dict[str, str]:
             await asyncio.sleep(delay)
@@ -144,6 +184,31 @@ class TestAsyncTransformer(unittest.IsolatedAsyncioTestCase):
 
     async def test_pipeline_with_validation(self):
         @ensure(incoming=[has_bar_key], outcome=[has_bar_key])
+        @async_transformer
+        async def identity(data: dict[str, str]) -> dict[str, str]:
+            await asyncio.sleep(0.1)
+            return data
+
+        pipeline = request_data >> identity >> forward()
+
+        result = await pipeline(_URL)
+        self.assertDictEqual(result, _DATA)
+
+    async def test_pipeline_with_foo_key_removal(self):
+        @ensure(incoming=[has_foo_key], outcome=[has_no_foo_key])
+        @async_transformer
+        async def remove_foo_key(data: dict[str, str]) -> dict[str, str]:
+            await asyncio.sleep(0.1)
+            data.pop("foo", None)
+            return data
+
+        pipeline = request_data >> remove_foo_key >> forward()
+
+        with self.assertRaises(HasNoFooKey):
+            await pipeline(_URL)
+
+    async def test_pipeline_with_foo_key_validation(self):
+        @ensure(incoming=[has_foo_key], outcome=[has_foo_key])
         @async_transformer
         async def identity(data: dict[str, str]) -> dict[str, str]:
             await asyncio.sleep(0.1)
