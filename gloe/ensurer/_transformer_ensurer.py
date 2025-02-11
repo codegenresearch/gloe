@@ -57,15 +57,15 @@ def output_ensurer(func: Callable[[_S], Any]) -> TransformerEnsurer[Any, _S]:
     pass
 
 
-def output_ensurer(func: Callable):
-    class LambdaEnsurer(TransformerEnsurer):
+def output_ensurer(func: Callable) -> TransformerEnsurer:
+    class LambdaEnsurer(TransformerEnsurer[_T, _S]):
         __doc__ = func.__doc__
         __annotations__ = cast(FunctionType, func).__annotations__
 
-        def validate_input(self, data):
+        def validate_input(self, data: _T):
             pass
 
-        def validate_output(self, data, output):
+        def validate_output(self, data: _T, output: _S):
             if len(inspect.signature(func).parameters) == 1:
                 func(output)
             else:
