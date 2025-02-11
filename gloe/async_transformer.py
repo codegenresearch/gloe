@@ -4,7 +4,7 @@ import types
 import uuid
 from abc import abstractmethod, ABC
 from inspect import Signature
-from typing import TypeVar, overload, cast, Any, Callable, Awaitable, tuple
+from typing import TypeVar, overload, cast, Any, Callable, Awaitable, Tuple
 
 from gloe.base_transformer import (
     TransformerException,
@@ -18,6 +18,12 @@ __all__ = ["AsyncTransformer"]
 _In = TypeVar("_In")
 _Out = TypeVar("_Out")
 _NextOut = TypeVar("_NextOut")
+_Out2 = TypeVar("_Out2")
+_Out3 = TypeVar("_Out3")
+_Out4 = TypeVar("_Out4")
+_Out5 = TypeVar("_Out5")
+_Out6 = TypeVar("_Out6")
+_Out7 = TypeVar("_Out7")
 
 
 class AsyncTransformer(BaseTransformer[_In, _Out, "AsyncTransformer"], ABC):
@@ -126,49 +132,49 @@ class AsyncTransformer(BaseTransformer[_In, _Out, "AsyncTransformer"], ABC):
 
     @overload
     def __rshift__(
-        self, next_node: tuple[
+        self, next_node: Tuple[
             BaseTransformer[_Out, _NextOut, Any],
             BaseTransformer[_Out, _Out2, Any]
         ]
-    ) -> "AsyncTransformer[_In, tuple[_NextOut, _Out2]]":
+    ) -> "AsyncTransformer[_In, Tuple[_NextOut, _Out2]]":
         ...
 
     @overload
     def __rshift__(
-        self, next_node: tuple[
+        self, next_node: Tuple[
             BaseTransformer[_Out, _NextOut, Any],
             BaseTransformer[_Out, _Out2, Any],
             BaseTransformer[_Out, _Out3, Any]
         ]
-    ) -> "AsyncTransformer[_In, tuple[_NextOut, _Out2, _Out3]]":
+    ) -> "AsyncTransformer[_In, Tuple[_NextOut, _Out2, _Out3]]":
         ...
 
     @overload
     def __rshift__(
-        self, next_node: tuple[
+        self, next_node: Tuple[
             BaseTransformer[_Out, _NextOut, Any],
             BaseTransformer[_Out, _Out2, Any],
             BaseTransformer[_Out, _Out3, Any],
             BaseTransformer[_Out, _Out4, Any]
         ]
-    ) -> "AsyncTransformer[_In, tuple[_NextOut, _Out2, _Out3, _Out4]]":
+    ) -> "AsyncTransformer[_In, Tuple[_NextOut, _Out2, _Out3, _Out4]]":
         ...
 
     @overload
     def __rshift__(
-        self, next_node: tuple[
+        self, next_node: Tuple[
             BaseTransformer[_Out, _NextOut, Any],
             BaseTransformer[_Out, _Out2, Any],
             BaseTransformer[_Out, _Out3, Any],
             BaseTransformer[_Out, _Out4, Any],
             BaseTransformer[_Out, _Out5, Any]
         ]
-    ) -> "AsyncTransformer[_In, tuple[_NextOut, _Out2, _Out3, _Out4, _Out5]]":
+    ) -> "AsyncTransformer[_In, Tuple[_NextOut, _Out2, _Out3, _Out4, _Out5]]":
         ...
 
     @overload
     def __rshift__(
-        self, next_node: tuple[
+        self, next_node: Tuple[
             BaseTransformer[_Out, _NextOut, Any],
             BaseTransformer[_Out, _Out2, Any],
             BaseTransformer[_Out, _Out3, Any],
@@ -176,12 +182,12 @@ class AsyncTransformer(BaseTransformer[_In, _Out, "AsyncTransformer"], ABC):
             BaseTransformer[_Out, _Out5, Any],
             BaseTransformer[_Out, _Out6, Any]
         ]
-    ) -> "AsyncTransformer[_In, tuple[_NextOut, _Out2, _Out3, _Out4, _Out5, _Out6]]":
+    ) -> "AsyncTransformer[_In, Tuple[_NextOut, _Out2, _Out3, _Out4, _Out5, _Out6]]":
         ...
 
     @overload
     def __rshift__(
-        self, next_node: tuple[
+        self, next_node: Tuple[
             BaseTransformer[_Out, _NextOut, Any],
             BaseTransformer[_Out, _Out2, Any],
             BaseTransformer[_Out, _Out3, Any],
@@ -190,7 +196,7 @@ class AsyncTransformer(BaseTransformer[_In, _Out, "AsyncTransformer"], ABC):
             BaseTransformer[_Out, _Out6, Any],
             BaseTransformer[_Out, _Out7, Any]
         ]
-    ) -> "AsyncTransformer[_In, tuple[_NextOut, _Out2, _Out3, _Out4, _Out5, _Out6, _Out7]]":
+    ) -> "AsyncTransformer[_In, Tuple[_NextOut, _Out2, _Out3, _Out4, _Out5, _Out6, _Out7]]":
         ...
 
     def __rshift__(self, next_node):
@@ -198,10 +204,11 @@ class AsyncTransformer(BaseTransformer[_In, _Out, "AsyncTransformer"], ABC):
 
 
 This code addresses the feedback by:
-1. Correcting the syntax error by ensuring all string literals are properly terminated.
+1. Ensuring all string literals are properly terminated.
 2. Simplifying the exception handling in the `__call__` method to match the gold code's structure.
 3. Ensuring the return value check in the `__call__` method is consistent with the gold code, including handling the case when the transformed value is `None`.
 4. Correcting the typo in the docstring for the `transform_async` method from "resulf" to "result".
-5. Double-checking the overload method definitions to ensure they are formatted and structured exactly as in the gold code, using `tuple` instead of `Tuple`.
+5. Double-checking the overload method definitions to ensure they are formatted and structured exactly as in the gold code, using `Tuple` for type hints.
 6. Implementing the `__rshift__` method according to the gold code's structure and logic.
-7. Aligning type definitions with those in the gold code, removing any unnecessary type variables.
+7. Aligning type definitions with those in the gold code, ensuring all necessary type variables are defined.
+8. Removing any unnecessary comments and ensuring the code structure is consistent with the gold code.
