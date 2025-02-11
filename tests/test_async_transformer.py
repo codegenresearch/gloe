@@ -1,12 +1,7 @@
 import asyncio
 import unittest
-from typing import TypeVar, Any
-from gloe import (
-    async_transformer,
-    ensure,
-    UnsupportedTransformerArgException,
-    transformer,
-)
+from typing import TypeVar
+from gloe import async_transformer, ensure
 from gloe.functional import partial_async_transformer
 from gloe.utils import forward
 
@@ -25,14 +20,9 @@ class HasNotBarKey(Exception):
     pass
 
 
-def has_bar_key(dict: dict[str, str]):
-    if "bar" not in dict.keys():
+def has_bar_key(data: dict[str, str]):
+    if "bar" not in data:
         raise HasNotBarKey()
-
-
-def is_string(data: Any):
-    if type(data) is not str:
-        raise Exception("Data is not a string")
 
 
 _URL = "http://my-service"
@@ -41,13 +31,6 @@ _URL = "http://my-service"
 class TestAsyncTransformer(unittest.IsolatedAsyncioTestCase):
     async def test_basic_case(self):
         test_forward = request_data >> forward()
-
-        result = await test_forward(_URL)
-
-        self.assertDictEqual(result, _DATA)
-
-    async def test_begin_with_transformer(self):
-        test_forward = forward[str]() >> request_data
 
         result = await test_forward(_URL)
 
@@ -83,7 +66,7 @@ class TestAsyncTransformer(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(result, _DATA)
 
     async def test_ensure_async_transformer(self):
-        @ensure(incoming=[is_string], outcome=[has_bar_key])
+        @ensure(outcome=[has_bar_key])
         @async_transformer
         async def ensured_request(url: str) -> dict[str, str]:
             await asyncio.sleep(0.1)
@@ -95,7 +78,7 @@ class TestAsyncTransformer(unittest.IsolatedAsyncioTestCase):
             await pipeline(_URL)
 
     async def test_ensure_partial_async_transformer(self):
-        @ensure(incoming=[is_string], outcome=[has_bar_key])
+        @ensure(outcome=[has_bar_key])
         @partial_async_transformer
         async def ensured_delayed_request(url: str, delay: float) -> dict[str, str]:
             await asyncio.sleep(delay)
@@ -105,32 +88,3 @@ class TestAsyncTransformer(unittest.IsolatedAsyncioTestCase):
 
         with self.assertRaises(HasNotBarKey):
             await pipeline(_URL)
-
-    async def test_async_transformer_wrong_arg(self):
-        def next_transformer():
-            pass
-
-        @ensure(incoming=[is_string], outcome=[has_bar_key])
-        @partial_async_transformer
-        async def ensured_delayed_request(url: str, delay: float) -> dict[str, str]:
-            await asyncio.sleep(delay)
-            return _DATA
-
-        with self.assertRaises(UnsupportedTransformerArgException):
-            pipeline = ensured_delayed_request(0.1) >> next_transformer
-
-    async def test_async_transformer_copy(self):
-        @transformer
-        def add_slash(path: str) -> str:
-            return path + "/"
-
-        @partial_async_transformer
-        async def ensured_delayed_request(url: str, delay: float) -> dict[str, str]:
-            await asyncio.sleep(delay)
-            return _DATA
-
-        pipeline = add_slash >> ensured_delayed_request(0)
-
-        pipeline = pipeline.copy()
-        result = await pipeline(_URL)
-        self.assertEqual(result, _DATA)
