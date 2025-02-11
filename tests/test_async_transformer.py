@@ -25,14 +25,41 @@ class HasNotBarKey(Exception):
     pass
 
 
+class HasNotFooKey(Exception):
+    pass
+
+
+class HasFooKey(Exception):
+    pass
+
+
+class IsNotInt(Exception):
+    pass
+
+
 def has_bar_key(data: dict[str, str]):
     if "bar" not in data:
         raise HasNotBarKey()
 
 
+def has_foo_key(data: dict[str, str]):
+    if "foo" not in data:
+        raise HasNotFooKey()
+
+
+def foo_key_removed(data: dict[str, str]):
+    if "foo" in data:
+        raise HasFooKey()
+
+
 def is_string(data: Any):
     if not isinstance(data, str):
         raise Exception("Data is not a string")
+
+
+def is_int(data: Any):
+    if not isinstance(data, int):
+        raise IsNotInt()
 
 
 _URL = "http://my-service"
@@ -118,3 +145,38 @@ class TestAsyncTransformer(unittest.IsolatedAsyncioTestCase):
         pipeline = pipeline.copy()
         result = await pipeline(_URL)
         self.assertEqual(result, _DATA)
+
+    async def test_ensure_with_changes(self):
+        @ensure(incoming=[is_int], outcome=[is_int], changes=[foo_key_removed])
+        @async_transformer
+        async def transform_with_changes(data: int) -> dict[str, str]:
+            await asyncio.sleep(0.1)
+            return {"bar": str(data)}
+
+        pipeline = transform_with_changes >> forward()
+        with self.assertRaises(HasFooKey):
+            await pipeline(10)
+
+    async def test_ensure_with_foo_key(self):
+        @ensure(incoming=[is_string], outcome=[has_foo_key])
+        @async_transformer
+        async def transform_with_foo_key(url: str) -> dict[str, str]:
+            await asyncio.sleep(0.1)
+            return {"foo": "bar"}
+
+        pipeline = transform_with_foo_key >> forward()
+        await pipeline(_URL)
+
+    async def test_ensure_with_no_foo_key(self):
+        @ensure(incoming=[is_string], outcome=[has_not_foo_key])
+        @async_transformer
+        async def transform_with_no_foo_key(url: str) -> dict[str, str]:
+            await asyncio.sleep(0.1)
+            return {"bar": "foo"}
+
+        pipeline = transform_with_no_foo_key >> forward()
+        with self.assertRaises(HasNotFooKey):
+            await pipeline(_URL)
+
+
+This code addresses the feedback by adding the requested exception classes, key check functions, and additional test cases. It also ensures that the `ensure` decorators are used with the appropriate configurations.
