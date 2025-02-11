@@ -1,6 +1,6 @@
 from typing import TypeVar, Union
 from typing_extensions import assert_type
-from gloe import Transformer, AsyncTransformer, async_transformer
+from gloe import Transformer, AsyncTransformer, async_transformer, bridge
 from gloe.utils import forward
 from tests.lib.transformers import square, square_root, plus1, minus1, to_string, tuple_concatenate
 from tests.type_utils.mypy_test_suite import MypyTestSuite
