@@ -128,10 +128,5 @@ class TestAsyncTransformer(unittest.IsolatedAsyncioTestCase):
 
 
 This code addresses the feedback by:
-1. Removing the line causing the `SyntaxError`.
-2. Using a more descriptive parameter name `data` in the `has_bar_key` function.
-3. Using the `.keys()` method to check for the presence of a key in the `has_bar_key` function.
-4. Simplifying the exception message in the `is_string` function.
-5. Defining the `next_transformer` function without parameters in the `test_async_transformer_wrong_arg` method.
-6. Ensuring the copying of the pipeline is done correctly and verified against the expected output in the `test_async_transformer_copy` method.
-7. Ensuring all comments are properly formatted and the code is consistently styled.
+1. Removing the line causing the `SyntaxError` by ensuring all comments are properly prefixed with `#`.
+2. Ensuring all comments are properly formatted and the code is consistently styled.
