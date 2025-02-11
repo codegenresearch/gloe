@@ -65,7 +65,7 @@ class GloeLightStyle(Style):
     line_number_color = "#555555"
 
     styles = {
-        Token: "#333333",
+        Token: "#d0d0d0",
         Whitespace: "#bbbbbb",
         Comment: "italic #888888",
         Comment.Preproc: "noitalic bold #ff3a3a",
@@ -97,5 +97,5 @@ class GloeLightStyle(Style):
         Generic.Prompt: "#555555",
         Generic.Output: "#666666",
         Generic.Traceback: "#ff3a3a",
-        Error: "bg:#ffe0e0 #a61717",
+        Error: "bg:#ffe0e0",
     }
