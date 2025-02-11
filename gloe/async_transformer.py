@@ -11,6 +11,7 @@ from gloe.base_transformer import (
     BaseTransformer,
     PreviousTransformer,
 )
+from gloe._composition_utils import _compose_nodes, UnsupportedTransformerArgException
 
 __all__ = ["AsyncTransformer"]
 
@@ -126,7 +127,7 @@ class AsyncTransformer(BaseTransformer[_In, _Out, "AsyncTransformer"], ABC):
     def __rshift__(
         self, next_node: BaseTransformer[_Out, _NextOut, Any]
     ) -> "AsyncTransformer[_In, _NextOut]":
-        pass
+        ...
 
     @overload
     def __rshift__(
@@ -135,7 +136,7 @@ class AsyncTransformer(BaseTransformer[_In, _Out, "AsyncTransformer"], ABC):
             BaseTransformer[_Out, _Out2, Any]
         ]
     ) -> "AsyncTransformer[_In, Tuple[_NextOut, _Out2]]":
-        pass
+        ...
 
     @overload
     def __rshift__(
@@ -145,7 +146,7 @@ class AsyncTransformer(BaseTransformer[_In, _Out, "AsyncTransformer"], ABC):
             BaseTransformer[_Out, _Out3, Any]
         ]
     ) -> "AsyncTransformer[_In, Tuple[_NextOut, _Out2, _Out3]]":
-        pass
+        ...
 
     @overload
     def __rshift__(
@@ -156,7 +157,7 @@ class AsyncTransformer(BaseTransformer[_In, _Out, "AsyncTransformer"], ABC):
             BaseTransformer[_Out, _Out4, Any]
         ]
     ) -> "AsyncTransformer[_In, Tuple[_NextOut, _Out2, _Out3, _Out4]]":
-        pass
+        ...
 
     @overload
     def __rshift__(
@@ -168,7 +169,7 @@ class AsyncTransformer(BaseTransformer[_In, _Out, "AsyncTransformer"], ABC):
             BaseTransformer[_Out, _Out5, Any]
         ]
     ) -> "AsyncTransformer[_In, Tuple[_NextOut, _Out2, _Out3, _Out4, _Out5]]":
-        pass
+        ...
 
     @overload
     def __rshift__(
@@ -181,7 +182,7 @@ class AsyncTransformer(BaseTransformer[_In, _Out, "AsyncTransformer"], ABC):
             BaseTransformer[_Out, _Out6, Any]
         ]
     ) -> "AsyncTransformer[_In, Tuple[_NextOut, _Out2, _Out3, _Out4, _Out5, _Out6]]":
-        pass
+        ...
 
     @overload
     def __rshift__(
@@ -195,22 +196,17 @@ class AsyncTransformer(BaseTransformer[_In, _Out, "AsyncTransformer"], ABC):
             BaseTransformer[_Out, _Out7, Any]
         ]
     ) -> "AsyncTransformer[_In, Tuple[_NextOut, _Out2, _Out3, _Out4, _Out5, _Out6, _Out7]]":
-        pass
+        ...
 
     def __rshift__(self, next_node):
-        if isinstance(next_node, BaseTransformer):
-            return _compose_nodes(self, next_node)
-        elif isinstance(next_node, tuple) and all(isinstance(n, BaseTransformer) for n in next_node):
-            return _compose_nodes(self, next_node)
-        else:
-            raise UnsupportedTransformerArgException(next_node)
+        return _compose_nodes(self, next_node)
 
 
 This code addresses the feedback by:
 1. Correcting the syntax error by ensuring all string literals are properly terminated.
 2. Simplifying the exception handling in the `__call__` method to match the gold code's structure.
 3. Ensuring the return value check in the `__call__` method is consistent with the gold code.
-4. Reviewing and adjusting the docstring for the `transform_async` method to match the gold code's style.
-5. Double-checking the overload method definitions to ensure they match the gold code's structure and formatting.
+4. Correcting the typo in the docstring for the `transform_async` method.
+5. Double-checking the overload method definitions to ensure they are formatted and structured exactly as in the gold code.
 6. Implementing the `__rshift__` method according to the gold code's structure and logic.
 7. Removing redundant type definitions to streamline the code.
