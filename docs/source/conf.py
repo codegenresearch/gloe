@@ -1,8 +1,12 @@
 # Configuration file for the Sphinx documentation builder.
+#
+# For the full list of built-in configuration values, see the documentation:
+# https://www.sphinx-doc.org/en/master/usage/configuration.html
 import os
 import sys
 
 # -- Project information -----------------------------------------------------
+# https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 sys.path.insert(0, os.path.abspath("../.."))
 sys.path.insert(0, os.path.abspath("pygments"))
 
@@ -12,6 +16,8 @@ author = "Samir Braga"
 release = "0.4.3"
 
 # -- General configuration ---------------------------------------------------
+# https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
+
 extensions = [
     "sphinx_toolbox.more_autodoc.variables",
     "sphinx.ext.autosectionlabel",
@@ -29,7 +35,7 @@ overloads_location = "bottom"
 napoleon_google_docstring = True
 autosectionlabel_prefix_document = True
 napoleon_use_rtype = False
-intersphinx_mapping = {"httpx": ("https://www.python-httpx.org/", None)}
+# intersphinx_mapping = {"httpx": ("https://www.python-httpx.org/", None)}
 ogp_site_url = "https://gloe.ideos.com.br/"
 ogp_image = "https://gloe.ideos.com.br/_static/assets/gloe-logo.png"
 
@@ -41,6 +47,8 @@ autodoc_type_aliases = {
 }
 
 # -- Options for HTML output -------------------------------------------------
+# https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
+
 html_title = "Gloe"
 # html_logo = "assets/gloe-logo-small.png"
 html_theme = "furo"
@@ -48,7 +56,7 @@ html_last_updated_fmt = ""
 # html_use_index = False  # Don't create index
 # html_domain_indices = False  # Don't need module indices
 # html_copy_source = False  # Don't need sources
-html_sidebars = {
+html_sidebars: dict[str, list[str]] = {
     "Home": ["/"],
 }
 
@@ -86,5 +94,6 @@ html_theme_options = {
     ],
 }
 
+# pygments_style = "styles.GloeStyle"
 pygments_dark_style = "styles.GloeDarkStyle"
 pygments_light_style = "styles.GloeLightStyle"
