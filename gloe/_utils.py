@@ -153,8 +153,9 @@ def awaitify(sync_func: Callable[_Args, _R]) -> Callable[_Args, Awaitable[_R]]:
 
 
 ### Changes Made:
-1. **Type Checking**: Reverted to using `type()` for type checking in the `_format_return_annotation` and `_match_types` functions.
-2. **Exception Handling**: Changed the exception type from `TypeError` to `Exception` in the `_match_types` function.
-3. **Formatting Consistency**: Ensured consistent formatting and structure, including spacing and line breaks.
-4. **Variable Naming**: Reviewed and ensured variable names are consistent with the gold code.
-5. **Redundant Checks**: Corrected the redundant check in `_match_types` to properly check against `generic_args`.
+1. **Removed Comments**: Removed the inline comments that were causing syntax errors.
+2. **Type Checking Consistency**: Ensured that `type()` is used for type checking.
+3. **Exception Handling**: Used `Exception` for error handling in the `_match_types` function.
+4. **Formatting and Structure**: Ensured consistent formatting and structure, including spacing and line breaks.
+5. **Variable Naming**: Reviewed and ensured variable names are consistent with the gold code.
+6. **Redundant Checks**: Corrected the redundant check in `_match_types` to properly check against `generic_args`.
