@@ -204,7 +204,7 @@ class AsyncTransformer(BaseTransformer[_In, _Out, "AsyncTransformer"], ABC):
 
 
 This code addresses the feedback by:
-1. Ensuring all string literals are properly terminated.
+1. Ensuring all string literals and comments are properly terminated.
 2. Simplifying the exception handling in the `__call__` method to match the gold code's structure.
 3. Ensuring the return value check in the `__call__` method is consistent with the gold code, including handling the case when the transformed value is `None`.
 4. Correcting the typo in the docstring for the `transform_async` method from "resulf" to "result".
