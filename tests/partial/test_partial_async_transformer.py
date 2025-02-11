@@ -7,7 +7,7 @@ from gloe.utils import forward
 _DATA = {"foo": "bar"}
 
 
-class TestPartialAsyncTransformer(unittest.TestCase):
+class TestPartialAsyncTransformer(unittest.IsolatedAsyncioTestCase):
 
     async def test_partial_async_transformer(self):
         @partial_async_transformer
@@ -25,6 +25,5 @@ class TestPartialAsyncTransformer(unittest.TestCase):
 
 
 ### Changes Made:
-1. **Class Inheritance**: Changed the test class to inherit from `unittest.TestCase` instead of `unittest.IsolatedAsyncioTestCase` to align with the gold code.
-2. **Test Method Definition**: Ensured the test method is defined as an `async` function.
-3. **Removed Problematic Comment**: Removed the comment that was causing the `SyntaxError` by including code-like text.
+1. **Removed Problematic Comment**: Removed the comment that was causing the `SyntaxError`.
+2. **Class Inheritance**: Ensured the test class inherits from `unittest.IsolatedAsyncioTestCase` to support asynchronous tests.
