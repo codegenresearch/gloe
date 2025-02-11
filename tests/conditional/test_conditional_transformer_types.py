@@ -1,11 +1,7 @@
+import asyncio
 from typing import TypeVar, Union
-
 from typing_extensions import assert_type
 
-from gloe import (
-    Transformer,
-    AsyncTransformer,
-)
 from tests.lib.conditioners import if_not_zero, if_is_even
 from tests.lib.transformers import (
     square,
@@ -15,15 +11,18 @@ from tests.lib.transformers import (
     to_string,
     async_plus1,
 )
+from gloe import (
+    Transformer,
+    async_transformer,
+    AsyncTransformer,
+)
+from gloe.utils import forward
 from tests.type_utils.mypy_test_suite import MypyTestSuite
 
 In = TypeVar("In")
 Out = TypeVar("Out")
 
-
 class TestTransformerTypes(MypyTestSuite):
-    mypy_result: str
-
     def test_conditioned_flow_types(self):
         """
         Test the most simple transformer typing
