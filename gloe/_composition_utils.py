@@ -1,5 +1,6 @@
 import asyncio
 from inspect import Signature
+from types import GenericAlias, MethodType
 from typing import TypeVar, Any, cast, Tuple
 
 from gloe.async_transformer import AsyncTransformer
@@ -27,7 +28,7 @@ def has_any_async_transformer(nodes: list) -> bool:
     return any(is_async_transformer(node) for node in nodes)
 
 
-def _resolve_new_merged_transformers(
+def _resolve_new_merge_transformers(
     new_transformer: BaseTransformer, transformer: BaseTransformer
 ) -> BaseTransformer:
     new_transformer.__class__.__name__ = transformer.__class__.__name__
@@ -40,20 +41,20 @@ def _resolve_new_merged_transformers(
 
 
 def _resolve_serial_connection_signatures(
-    transformer: BaseTransformer, generic_vars: dict, signature: Signature
+    transformer2: BaseTransformer, generic_vars: dict, signature2: Signature
 ) -> Signature:
-    first_param = list(signature.parameters.values())[0]
+    first_param = list(signature2.parameters.values())[0]
     new_parameter = first_param.replace(
-        annotation=_specify_types(transformer.input_type, generic_vars)
+        annotation=_specify_types(transformer2.input_type, generic_vars)
     )
-    new_signature = signature.replace(
+    new_signature = signature2.replace(
         parameters=[new_parameter],
-        return_annotation=_specify_types(signature.return_annotation, generic_vars),
+        return_annotation=_specify_types(signature2.return_annotation, generic_vars),
     )
     return new_signature
 
 
-def _merge_serial(
+def _nerge_serial(
     transformer1: BaseTransformer, transformer2: BaseTransformer
 ) -> BaseTransformer:
     if transformer1.previous is None:
@@ -81,7 +82,7 @@ def _merge_serial(
     setattr(
         transformer1,
         "signature",
-        types.MethodType(transformer1_signature, transformer1),
+        MethodType(transformer1_signature, transformer1),
     )
 
     class BaseNewTransformer:
@@ -90,7 +91,7 @@ def _merge_serial(
                 transformer2, generic_vars, signature2
             )
 
-        def __len__(self) -> int:
+        def __len__(self):
             return len(transformer1) + len(transformer2)
 
     new_transformer: BaseTransformer | None = None
@@ -132,7 +133,7 @@ def _merge_serial(
     else:
         raise UnsupportedTransformerArgException(transformer2)
 
-    return _resolve_new_merged_transformers(new_transformer, transformer2)
+    return _resolve_new_merge_transformers(new_transformer, transformer2)
 
 
 def _merge_diverging(
@@ -173,7 +174,7 @@ def _merge_diverging(
             setattr(
                 transformer,
                 "signature",
-                types.MethodType(_signature, transformer),
+                MethodType(_signature, transformer),
             )
 
     class BaseNewTransformer:
@@ -182,11 +183,11 @@ def _merge_diverging(
                 signature.return_annotation for signature in receiving_signatures
             ]
             new_signature = incident_signature.replace(
-                return_annotation=Tuple[tuple(return_annotations)]
+                return_annotation=GenericAlias(tuple, tuple(return_annotations))
             )
             return new_signature
 
-        def __len__(self) -> int:
+        def __len__(self):
             return sum(len(transformer) for transformer in receiving_transformers) + len(incident_transformer)
 
     new_transformer = None
@@ -250,7 +251,7 @@ def _compose_nodes(
 ) -> BaseTransformer:
     if isinstance(current_transformer, BaseTransformer):
         if isinstance(next_node, BaseTransformer):
-            return _merge_serial(current_transformer, next_node)
+            return _nerge_serial(current_transformer, next_node)
         elif isinstance(next_node, tuple):
             if all(isinstance(transformer, BaseTransformer) for transformer in next_node):
                 return _merge_diverging(current_transformer, *next_node)
