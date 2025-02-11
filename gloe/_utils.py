@@ -1,46 +1,66 @@
 from functools import wraps
+from types import GenericAlias, _GenericAlias
 from typing import (
     TypeVar,
     get_origin,
     ParamSpec,
     Callable,
     Awaitable,
-    GenericAlias,
-    _GenericAlias,
 )  # type: ignore
 
 
 def _format_tuple(
     tuple_annotation: tuple, generic_input_param, input_annotation
 ) -> str:
-    formatted: list[str] = []
-    for annotation in tuple_annotation:
-        formatted.append(
-            _format_return_annotation(annotation, generic_input_param, input_annotation)
-        )
+    """
+    Formats a tuple annotation.
+    
+    Args:
+        tuple_annotation: The tuple annotation to format.
+        generic_input_param: The generic input parameter.
+        input_annotation: The input annotation.
+    
+    Returns:
+        A formatted string representation of the tuple annotation.
+    """
+    formatted = [_format_return_annotation(a, generic_input_param, input_annotation) for a in tuple_annotation]
     return f"({', '.join(formatted)})"
 
 
 def _format_union(
     tuple_annotation: tuple, generic_input_param, input_annotation
 ) -> str:
-    formatted: list[str] = []
-    for annotation in tuple_annotation:
-        formatted.append(
-            _format_return_annotation(annotation, generic_input_param, input_annotation)
-        )
+    """
+    Formats a union annotation.
+    
+    Args:
+        tuple_annotation: The union annotation to format.
+        generic_input_param: The generic input parameter.
+        input_annotation: The input annotation.
+    
+    Returns:
+        A formatted string representation of the union annotation.
+    """
+    formatted = [_format_return_annotation(a, generic_input_param, input_annotation) for a in tuple_annotation]
     return f"({' | '.join(formatted)})"
 
 
 def _format_generic_alias(
     return_annotation: GenericAlias, generic_input_param, input_annotation
 ) -> str:
+    """
+    Formats a generic alias annotation.
+    
+    Args:
+        return_annotation: The generic alias annotation to format.
+        generic_input_param: The generic input parameter.
+        input_annotation: The input annotation.
+    
+    Returns:
+        A formatted string representation of the generic alias annotation.
+    """
     alias_name = return_annotation.__name__
-    formatted: list[str] = []
-    for annotation in return_annotation.__args__:
-        formatted.append(
-            _format_return_annotation(annotation, generic_input_param, input_annotation)
-        )
+    formatted = [_format_return_annotation(a, generic_input_param, input_annotation) for a in return_annotation.__args__]
     return f"{alias_name}[{', '.join(formatted)}]"
 
 
