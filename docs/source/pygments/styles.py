@@ -57,7 +57,7 @@ class GloeDarkStyle(Style):
 class GloeLightStyle(Style):
     name = "gloe-light"
     background_color = "#ffffff"
-    highlight_color = "#e0e0e0"
+    highlight_color = "#404040"
     line_number_color = "#555555"
 
     styles = {
