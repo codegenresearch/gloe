@@ -45,6 +45,7 @@ autodoc_typehints = "description"
 autodoc_type_aliases = {
     "PreviousTransformer": "gloe.base_transformer.PreviousTransformer"
 }
+# autodoc_default_options = {"ignore-module-all": True}
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
@@ -67,18 +68,18 @@ html_theme_options = {
     "light_logo": "assets/gloe-logo-small.png",
     "dark_logo": "assets/gloe-logo-small.png",
     "light_css_variables": {
-        "color-brand-primary": "#00e6bf",
-        "color-brand-content": "#00e6bf",
+        "color-brand-primary": "#ffffff",
+        "color-brand-content": "#000000",
         "font-stack": "Roboto, sans-serif",
         "font-stack--monospace": "Courier, monospace",
-        "font-size--normal": "Courier, monospace",
+        "font-size--normal": "16px",
     },
     "dark_css_variables": {
         "color-brand-primary": "#00e6bf",
-        "color-brand-content": "#00e6bf",
+        "color-brand-content": "#ffffff",
         "font-stack": "Roboto, sans-serif",
         "font-stack--monospace": "Courier, monospace",
-        "font-size--normal": "Courier, monospace",
+        "font-size--normal": "16px",
     },
     "footer_icons": [
         {
