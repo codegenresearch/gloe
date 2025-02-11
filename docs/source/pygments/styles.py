@@ -69,7 +69,7 @@ class GloeLightStyle(Style):
         Whitespace: "#999999",
         Comment: "italic #888888",
         Comment.Preproc: "noitalic bold #ff3a3a",
-        Comment.Special: "noitalic bold #e50808 bg:#ffe0e0",
+        Comment.Special: "noitalic bold #e50808 bg:#520000",
         Keyword: "bold #45df9a",
         Keyword.Pseudo: "nobold",
         Operator.Word: "bold #45df9a",
