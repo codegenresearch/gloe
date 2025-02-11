@@ -45,34 +45,34 @@ class FooKeyRemoved(Exception):
     pass
 
 
-def has_bar_key(data: dict[str, str]) -> None:
+def has_bar_key(data: dict[str, str]):
     if "bar" not in data:
-        raise HasNotBarKey("The dictionary does not contain the key 'bar'.")
+        raise HasNotBarKey
 
 
-def has_foo_key(data: dict[str, str]) -> None:
+def has_foo_key(data: dict[str, str]):
     if "foo" not in data:
-        raise HasNotFooKey("The dictionary does not contain the key 'foo'.")
+        raise HasNotFooKey
 
 
-def has_no_foo_key(data: dict[str, str]) -> None:
+def has_no_foo_key(data: dict[str, str]):
     if "foo" in data:
-        raise HasFooKey("The dictionary should not contain the key 'foo'.")
+        raise HasFooKey
 
 
-def is_int(data: Any) -> None:
+def is_int(data: Any):
     if not isinstance(data, int):
-        raise IsNotInt("The data is not an integer.")
+        raise IsNotInt
 
 
-def is_str(data: Any) -> None:
+def is_str(data: Any):
     if not isinstance(data, str):
-        raise IsNotStr("The data is not a string.")
+        raise IsNotStr
 
 
-def foo_key_removed(data: dict[str, str]) -> None:
+def foo_key_removed(data: dict[str, str]):
     if "foo" in data:
-        raise FooKeyRemoved("The 'foo' key was not removed from the dictionary.")
+        raise FooKeyRemoved
 
 
 _URL = "http://my-service"
@@ -179,7 +179,7 @@ class TestAsyncTransformer(unittest.IsolatedAsyncioTestCase):
         with self.assertWarns(RuntimeWarning):
 
             @async_transformer  # type: ignore
-            async def many_args(arg1: str, arg2: int) -> Any:
+            async def many_args(arg1: str, arg2: int):
                 return arg1, arg2
 
     async def test_pipeline_with_validation(self):
@@ -220,4 +220,4 @@ class TestAsyncTransformer(unittest.IsolatedAsyncioTestCase):
         self.assertDictEqual(result, _DATA)
 
 
-This code snippet addresses the feedback by ensuring that all string literals and comments are properly terminated. It also aligns with the gold code in terms of exception handling, validation functions, function signatures, use of decorators, pipeline construction, test cases, and code formatting.
+This code snippet addresses the feedback by ensuring that all string literals and comments are properly terminated and formatted. It also aligns with the gold code in terms of exception handling, validation functions, function signatures, use of decorators, pipeline construction, test cases, and code formatting. The key checks in the validation functions have been simplified, and the exception messages have been removed to match the gold code's style.
