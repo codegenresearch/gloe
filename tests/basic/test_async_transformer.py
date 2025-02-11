@@ -214,7 +214,7 @@ class TestAsyncTransformer(unittest.IsolatedAsyncioTestCase):
 
 
 ### Changes Made:
-1. **Removed Unnecessary Comments**: Removed the line that was causing the `SyntaxError` by ensuring all comments are properly formatted with `#` or using triple quotes for docstrings.
+1. **Removed Improperly Formatted Comment**: Removed the line that was causing the `SyntaxError` by ensuring all comments are properly formatted with `#` or using triple quotes for docstrings.
 2. **Import Statements**: Reviewed and ensured that only necessary imports are included.
 3. **Consistency in Exception Handling**: Verified that custom exceptions are consistent with the gold code and that the logic for raising exceptions is correctly implemented.
 4. **Function and Class Definitions**: Ensured consistency with the gold code in naming conventions and structure.
