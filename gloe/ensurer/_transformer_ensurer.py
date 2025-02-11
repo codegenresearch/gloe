@@ -362,3 +362,5 @@ def ensure(*args, **kwargs):
 6. **Code Structure and Readability**: Improved the overall readability and organization of the code, ensuring clarity and consistency in how classes and methods are defined and implemented.
 
 7. **Redundant Code**: Removed redundant code and ensured that the logic is streamlined and efficient.
+
+8. **Parameter Handling**: Ensured that parameters and keyword arguments are handled consistently in the `ensure` function, particularly in how keys are checked in `kwargs`.
