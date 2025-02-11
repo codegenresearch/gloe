@@ -16,11 +16,11 @@ _P1 = ParamSpec("_P1")
 class TransformerEnsurer(Generic[_T, _S], ABC):
     @abstractmethod
     def validate_input(self, data: _T):
-        """Validate incoming data before executing the transformer."""
+        """Perform a validation on incoming data before executing the transformer code."""
 
     @abstractmethod
     def validate_output(self, data: _T, output: _S):
-        """Validate output data after executing the transformer."""
+        """Perform a validation on outcome data after executing the transformer code."""
 
     def __call__(self, transformer: Transformer[_T, _S]) -> Transformer[_T, _S]:
         def transform(this: Transformer, data: _T) -> _S:
@@ -49,12 +49,12 @@ def input_ensurer(func: Callable[[_T], Any]) -> TransformerEnsurer[_T, Any]:
 
 @overload
 def output_ensurer(func: Callable[[_T, _S], Any]) -> TransformerEnsurer[_T, _S]:
-    ...
+    pass
 
 
 @overload
 def output_ensurer(func: Callable[[_S], Any]) -> TransformerEnsurer[Any, _S]:
-    ...
+    pass
 
 
 def output_ensurer(func: Callable) -> TransformerEnsurer:
@@ -78,23 +78,23 @@ def output_ensurer(func: Callable) -> TransformerEnsurer:
 class _ensure_base:
     @overload
     def __call__(self, transformer: Transformer[_U, _S]) -> Transformer[_U, _S]:
-        ...
+        pass
 
     @overload
     def __call__(
         self, transformer_init: _PartialTransformer[_T, _P1, _U]
     ) -> _PartialTransformer[_T, _P1, _U]:
-        ...
+        pass
 
     @overload
     def __call__(self, transformer: AsyncTransformer[_U, _S]) -> AsyncTransformer[_U, _S]:
-        ...
+        pass
 
     @overload
     def __call__(
         self, transformer_init: _PartialAsyncTransformer[_T, _P1, _U]
     ) -> _PartialAsyncTransformer[_T, _P1, _U]:
-        ...
+        pass
 
     def __call__(self, arg):
         if isinstance(arg, Transformer):
@@ -257,38 +257,38 @@ class _ensure_both(Generic[_T, _S], _ensure_base):
 
 @overload
 def ensure(incoming: Sequence[Callable[[_T], Any]]) -> _ensure_incoming[_T]:
-    ...
+    pass
 
 
 @overload
 def ensure(outcome: Sequence[Callable[[_S], Any]]) -> _ensure_outcome[_S]:
-    ...
+    pass
 
 
 @overload
 def ensure(changes: Sequence[Callable[[_T, _S], Any]]) -> _ensure_changes[_T, _S]:
-    ...
+    pass
 
 
 @overload
 def ensure(
     incoming: Sequence[Callable[[_T], Any]], outcome: Sequence[Callable[[_S], Any]]
 ) -> _ensure_both[_T, _S]:
-    ...
+    pass
 
 
 @overload
 def ensure(
     incoming: Sequence[Callable[[_T], Any]], changes: Sequence[Callable[[_T, _S], Any]]
 ) -> _ensure_both[_T, _S]:
-    ...
+    pass
 
 
 @overload
 def ensure(
     outcome: Sequence[Callable[[_T], Any]], changes: Sequence[Callable[[_T, _S], Any]]
 ) -> _ensure_both[_T, _S]:
-    ...
+    pass
 
 
 @overload
@@ -297,17 +297,40 @@ def ensure(
     outcome: Sequence[Callable[[_S], Any]],
     changes: Sequence[Callable[[_T, _S], Any]],
 ) -> _ensure_both[_T, _S]:
-    ...
+    pass
 
 
 def ensure(*args, **kwargs):
     """
-    Decorator to add validation layers to transformers based on incoming, outcome, or both data.
+    This decorator is used in transformers to ensure some validation based on its incoming
+    data, outcome data, or both.
+
+    These validations are performed by validators. Validators are simple callable
+    functions that validate certain aspects of the input, output, or the differences
+    between them. If the validation fails, it must raise an exception.
+
+    The decorator :code:`@ensure` returns some intermediate classes to assist with the
+    internal logic of Gloe. However, the result of applying it to a transformer is just
+    a new transformer with the exact same attributes, but it includes an additional
+    validation layer.
+
+    The motivation of the many overloads is just to allow the user to define different types
+    of validators interchangeably.
+
+    See also:
+        For more detailed information about this feature, refer to the :ref:`ensurers` page.
 
     Args:
-        incoming (Sequence[Callable[[T], Any]]): Validators for incoming data.
-        outcome (Sequence[Callable[[S], Any]]): Validators for outcome data.
-        changes (Sequence[Callable[[T, S], Any]]): Validators for both incoming and outcome data.
+        incoming (Sequence[Callable[[_T], Any]]): sequence of validators that will be
+            applied to the incoming data. The type :code:`_T` refers to the incoming type.
+            Default value: :code:`[]`.
+        outcome (Sequence[Callable[[_S], Any]]): sequence of validators that will be
+            applied to the outcome data. The type :code:`_S` refers to the outcome type.
+            Default value: :code:`[]`.
+        changes (Sequence[Callable[[_T, _S], Any]]): sequence of validators that will be
+            applied to both incoming and outcome data. The type :code:`_T` refers to the
+            incoming type, and type :code:`_S` refers to the outcome type.
+            Default value: :code:`[]`.
     """
     if "incoming" in kwargs:
         return _ensure_incoming(kwargs["incoming"])
