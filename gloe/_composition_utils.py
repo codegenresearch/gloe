@@ -15,7 +15,7 @@ _NextOut = TypeVar("_NextOut")
 
 
 def is_transformer(node) -> bool:
-    if type(node) == list or type(node) == tuple:
+    if isinstance(node, (list, tuple)):
         return all(is_transformer(n) for n in node)
     return isinstance(node, Transformer)
 
@@ -258,7 +258,7 @@ def _compose_nodes(
     if issubclass(type(current), BaseTransformer):
         if issubclass(type(next_node), BaseTransformer):
             return _nerge_serial(current, next_node)
-        elif type(next_node) == tuple:
+        elif isinstance(next_node, tuple):
             if all(issubclass(type(transformer), BaseTransformer) for transformer in next_node):
                 return _merge_diverging(current, *next_node)
 
@@ -281,3 +281,4 @@ def _compose_nodes(
 6. **Error Handling**: Used `issubclass` checks appropriately in `_compose_nodes`.
 7. **Code Structure and Formatting**: Ensured consistent formatting and organization.
 8. **Variable Naming**: Used `transformer1_call` and `transformer2_call` for clarity in the `transform` methods.
+9. **Type Checking**: Used `isinstance` for type checking in `is_transformer` and `is_async_transformer` for better readability and consistency.
