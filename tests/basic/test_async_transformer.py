@@ -1,7 +1,6 @@
 import asyncio
 import unittest
 from typing import TypeVar, Any, cast
-
 from gloe import (
     async_transformer,
     ensure,
@@ -13,12 +12,13 @@ from gloe import (
 from gloe.async_transformer import _execute_async_flow
 from gloe.functional import partial_async_transformer
 from gloe.utils import forward
-from tests.lib.exceptions import LnOfNegativeNumber
-from tests.lib.transformers import async_plus1, async_natural_logarithm
+from tests.lib.ensurers import is_odd
+from tests.lib.exceptions import LnOfNegativeNumber, NumbersEqual, NumberIsEven
+from tests.lib.transformers import async_plus1, async_natural_logarithm, minus1
 
 _In = TypeVar("_In")
 
-_DATA = {"foo": "bar"}
+DATA = {"foo": "bar"}
 
 
 async def raise_an_error():
@@ -29,13 +29,13 @@ async def raise_an_error():
 @async_transformer
 async def request_data(url: str) -> dict[str, str]:
     await asyncio.sleep(0.01)
-    return _DATA
+    return DATA
 
 
 class RequestData(AsyncTransformer[str, dict[str, str]]):
     async def transform_async(self, url: str) -> dict[str, str]:
         await asyncio.sleep(0.01)
-        return _DATA
+        return DATA
 
 
 class HasNotBarKey(Exception):
@@ -82,30 +82,30 @@ def foo_key_removed(incoming: dict[str, str], outcome: dict[str, str]):
         raise HasFooKey()
 
 
-_URL = "http://my-service"
+URL = "http://my-service"
 
 
 class TestAsyncTransformer(unittest.IsolatedAsyncioTestCase):
     async def test_basic_case(self):
         test_forward = request_data >> forward()
 
-        result = await test_forward(_URL)
+        result = await test_forward(URL)
 
-        self.assertDictEqual(_DATA, result)
+        self.assertDictEqual(DATA, result)
 
     async def test_begin_with_transformer(self):
         test_forward = forward[str]() >> request_data
 
-        result = await test_forward(_URL)
+        result = await test_forward(URL)
 
-        self.assertDictEqual(_DATA, result)
+        self.assertDictEqual(DATA, result)
 
     async def test_async_on_divergent_connection(self):
         test_forward = forward[str]() >> (forward[str](), request_data)
 
-        result = await test_forward(_URL)
+        result = await test_forward(URL)
 
-        self.assertEqual((_URL, _DATA), result)
+        self.assertEqual((URL, DATA), result)
 
     async def test_divergent_connection_from_async(self):
         test_forward = request_data >> (
@@ -113,9 +113,9 @@ class TestAsyncTransformer(unittest.IsolatedAsyncioTestCase):
             forward[dict[str, str]](),
         )
 
-        result = await test_forward(_URL)
+        result = await test_forward(URL)
 
-        self.assertEqual((_DATA, _DATA), result)
+        self.assertEqual((DATA, DATA), result)
 
     async def test_async_transformer_wrong_arg(self):
         def next_transformer():
@@ -125,7 +125,7 @@ class TestAsyncTransformer(unittest.IsolatedAsyncioTestCase):
         @partial_async_transformer
         async def ensured_delayed_request(url: str, delay: float) -> dict[str, str]:
             await asyncio.sleep(delay)
-            return _DATA
+            return DATA
 
         with self.assertRaises(UnsupportedTransformerArgException):
             ensured_delayed_request(0.01) >> next_transformer  # type: ignore
@@ -138,13 +138,13 @@ class TestAsyncTransformer(unittest.IsolatedAsyncioTestCase):
         @partial_async_transformer
         async def ensured_delayed_request(url: str, delay: float) -> dict[str, str]:
             await asyncio.sleep(delay)
-            return _DATA
+            return DATA
 
         pipeline = add_slash >> ensured_delayed_request(0)
 
         pipeline = pipeline.copy()
-        result = await pipeline(_URL)
-        self.assertEqual(_DATA, result)
+        result = await pipeline(URL)
+        self.assertEqual(DATA, result)
 
     def test_async_transformer_wrong_signature(self):
         with self.assertWarns(RuntimeWarning):
