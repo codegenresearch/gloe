@@ -1,47 +1,32 @@
 import asyncio
-from typing import TypeVar, Union
+from typing import Union
 from typing_extensions import assert_type
 
+from gloe import (
+    Transformer,
+    async_transformer,
+    AsyncTransformer,
+    ensure,
+    partial_async_transformer,
+)
+from gloe.utils import forward
+from gloe.experimental import bridge
 from tests.lib.conditioners import if_not_zero, if_is_even
-from tests.lib.ensurers import is_even, same_value, same_value_int, is_greater_than_10
 from tests.lib.transformers import (
     square,
     square_root,
     plus1,
     minus1,
     to_string,
-    logarithm,
-    repeat,
-    format_currency,
-    tuple_concatenate,
     async_plus1,
 )
-from gloe import (
-    Transformer,
-    transformer,
-    partial_transformer,
-    partial_async_transformer,
-    ensure,
-    async_transformer,
-    AsyncTransformer,
-)
-from gloe.utils import forward
-from gloe.experimental import bridge
-from gloe.collection import Map
-from mypy import api
-
 from tests.type_utils.mypy_test_suite import MypyTestSuite
-
-In = TypeVar("In")
-Out = TypeVar("Out")
 
 
 class TestTransformerTypes(MypyTestSuite):
-    mypy_result: str
-
     def test_conditioned_flow_types(self):
         """
-        Test the most simple transformer typing
+        Test transformer typing with conditional flows.
         """
 
         conditioned_graph = (
@@ -58,7 +43,7 @@ class TestTransformerTypes(MypyTestSuite):
 
     def test_chained_condition_flow_types(self):
         """
-        Test the most simple transformer typing
+        Test transformer typing with chained conditional flows.
         """
 
         chained_conditions_graph = (
@@ -71,7 +56,7 @@ class TestTransformerTypes(MypyTestSuite):
 
     def test_async_chained_condition_flow_types(self):
         """
-        Test the most simple transformer typing
+        Test async transformer typing with chained conditional flows.
         """
 
         async_chained_conditions_graph = (
