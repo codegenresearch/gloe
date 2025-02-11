@@ -58,7 +58,7 @@ html_last_updated_fmt = ""
 # html_domain_indices = False  # Don't need module indices
 # html_copy_source = False  # Don't need sources
 html_sidebars = {
-    "Home": [],
+    "Home": ["/"],
 }
 
 html_static_path = ["_static"]
