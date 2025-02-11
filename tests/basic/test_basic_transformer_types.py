@@ -1,6 +1,6 @@
 from typing import TypeVar, Union
 from typing_extensions import assert_type
-from gloe import Transformer, AsyncTransformer, async_transformer, bridge
+from gloe import Transformer, AsyncTransformer, async_transformer
 from gloe.utils import forward
 from tests.lib.transformers import square, square_root, plus1, minus1, to_string, tuple_concatenate
 from tests.type_utils.mypy_test_suite import MypyTestSuite
@@ -8,13 +8,12 @@ from tests.type_utils.mypy_test_suite import MypyTestSuite
 In = TypeVar("In")
 Out = TypeVar("Out")
 
-NUM_BRIDGE_NAME = "num"
 
 class TestBasicTransformerTypes(MypyTestSuite):
 
     def test_transformer_simple_typing(self):
         """
-        Test the most simple transformer typing
+        Test the basic transformer typing with a single transformer.
         """
 
         graph = square
@@ -22,7 +21,7 @@ class TestBasicTransformerTypes(MypyTestSuite):
 
     def test_simple_flow_typing(self):
         """
-        Test the most simple transformer typing
+        Test the typing of a simple transformer flow with two transformers.
         """
 
         graph = square >> square_root
@@ -31,7 +30,7 @@ class TestBasicTransformerTypes(MypyTestSuite):
 
     def test_flow_with_mixed_types(self):
         """
-        Test the most simple transformer typing
+        Test the typing of a transformer flow that changes the output type.
         """
 
         graph = square >> square_root >> to_string
@@ -40,7 +39,7 @@ class TestBasicTransformerTypes(MypyTestSuite):
 
     def test_divergent_flow_types(self):
         """
-        Test the most simple transformer typing
+        Test the typing of transformer flows with divergent outputs.
         """
 
         graph2 = square >> square_root >> (to_string, square)
@@ -76,13 +75,21 @@ class TestBasicTransformerTypes(MypyTestSuite):
         )
 
     def test_bridge(self):
-        num_bridge = bridge[float](NUM_BRIDGE_NAME)
+        """
+        Test the typing of a transformer flow using the bridge function.
+        """
+
+        num_bridge = bridge[float]("num")
 
         graph = plus1 >> num_bridge.pick() >> minus1 >> num_bridge.drop()
 
         assert_type(graph, Transformer[float, tuple[float, float]])
 
     def test_async_transformer(self):
+        """
+        Test the typing of async transformers and their combinations.
+        """
+
         @async_transformer
         async def _square(num: int) -> float:
             return float(num * num)
