@@ -1,5 +1,5 @@
 from functools import wraps
-from types import GenericAlias, _GenericAlias
+from types import GenericAlias
 from typing import (
     TypeVar,
     get_origin,
@@ -23,7 +23,11 @@ def _format_tuple(
     Returns:
         A formatted string representation of the tuple annotation.
     """
-    formatted = [_format_return_annotation(a, generic_input_param, input_annotation) for a in tuple_annotation]
+    formatted: list[str] = []
+    for annotation in tuple_annotation:
+        formatted.append(
+            _format_return_annotation(annotation, generic_input_param, input_annotation)
+        )
     return f"({', '.join(formatted)})"
 
 
@@ -41,7 +45,11 @@ def _format_union(
     Returns:
         A formatted string representation of the union annotation.
     """
-    formatted = [_format_return_annotation(a, generic_input_param, input_annotation) for a in tuple_annotation]
+    formatted: list[str] = []
+    for annotation in tuple_annotation:
+        formatted.append(
+            _format_return_annotation(annotation, generic_input_param, input_annotation)
+        )
     return f"({' | '.join(formatted)})"
 
 
@@ -60,7 +68,11 @@ def _format_generic_alias(
         A formatted string representation of the generic alias annotation.
     """
     alias_name = return_annotation.__name__
-    formatted = [_format_return_annotation(a, generic_input_param, input_annotation) for a in return_annotation.__args__]
+    formatted: list[str] = []
+    for annotation in return_annotation.__args__:
+        formatted.append(
+            _format_return_annotation(annotation, generic_input_param, input_annotation)
+        )
     return f"{alias_name}[{', '.join(formatted)}]"
 
 
@@ -78,9 +90,9 @@ def _format_return_annotation(
     Returns:
         A formatted string representation of the return annotation.
     """
-    if type(return_annotation) == str:
+    if isinstance(return_annotation, str):
         return return_annotation
-    if type(return_annotation) == tuple:
+    if isinstance(return_annotation, tuple):
         return _format_tuple(return_annotation, generic_input_param, input_annotation)
     if return_annotation.__name__ in {"tuple", "Tuple"}:
         return _format_tuple(
@@ -90,7 +102,7 @@ def _format_return_annotation(
         return _format_union(
             return_annotation.__args__, generic_input_param, input_annotation
         )
-    if type(return_annotation) == GenericAlias or type(return_annotation) == _GenericAlias:
+    if isinstance(return_annotation, GenericAlias):
         return _format_generic_alias(
             return_annotation, generic_input_param, input_annotation
         )
@@ -116,7 +128,7 @@ def _match_types(generic, specific, ignore_mismatches=True):
     Raises:
         Exception: If types do not match and ignore_mismatches is False.
     """
-    if type(generic) == TypeVar:
+    if isinstance(generic, TypeVar):
         return {generic: specific}
 
     specific_origin = get_origin(specific)
@@ -174,7 +186,7 @@ def _specify_types(generic, spec):
     Returns:
         The specified type.
     """
-    if type(generic) == TypeVar:
+    if isinstance(generic, TypeVar):
         tp = spec.get(generic)
         if tp is None:
             return generic
