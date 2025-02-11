@@ -53,3 +53,45 @@ class GloeDarkStyle(Style):
         Generic.Traceback: "#ff3a3a",
         Error: "bg:#e3d2d2 #a61717",
     }
+
+class GloeLightStyle(Style):
+    name = "gloe-light"
+    background_color = "#ffffff"
+    highlight_color = "#e0e0e0"
+    line_number_color = "#555555"
+
+    styles = {
+        Token: "#000000",
+        Whitespace: "#bbbbbb",
+        Comment: "italic #888888",
+        Comment.Preproc: "noitalic bold #4a90d9",
+        Comment.Special: "noitalic bold #ff4500 bg:#ffffcc",
+        Keyword: "bold #008000",
+        Keyword.Pseudo: "nobold",
+        Operator.Word: "bold #008000",
+        String: "#a31515",
+        String.Other: "#a31515",
+        Number: "#0000ff",
+        Name.Builtin: "#008000",
+        Name.Variable: "#0000ff",
+        Name.Constant: "#0000ff",
+        Name.Class: "underline #0000ff",
+        Name.Function: "#0000ff",
+        Name.Namespace: "underline #0000ff",
+        Name.Exception: "#8b0000",
+        Name.Tag: "bold #008000",
+        Name.Attribute: "#8b0000",
+        Name.Decorator: "#a31515",
+        Generic.Heading: "bold #000000",
+        Generic.Subheading: "underline #000000",
+        Generic.Deleted: "#a00000",
+        Generic.Inserted: "#00a000",
+        Generic.Error: "#a00000",
+        Generic.Emph: "italic",
+        Generic.Strong: "bold",
+        Generic.EmphStrong: "bold italic",
+        Generic.Prompt: "#555555",
+        Generic.Output: "#888888",
+        Generic.Traceback: "#a00000",
+        Error: "bg:#ffcccc #a00000",
+    }
