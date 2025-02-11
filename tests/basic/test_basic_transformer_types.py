@@ -6,6 +6,7 @@ from gloe import (
     async_transformer,
     AsyncTransformer,
 )
+from gloe.experimental import bridge
 from gloe.utils import forward
 from tests.lib.transformers import (
     square,
@@ -25,7 +26,7 @@ class TestBasicTransformerTypes(MypyTestSuite):
 
     def test_transformer_simple_typing(self):
         """
-        Test the most simple transformer typing
+        Test the basic transformer typing
         """
 
         graph = square
@@ -33,7 +34,7 @@ class TestBasicTransformerTypes(MypyTestSuite):
 
     def test_simple_flow_typing(self):
         """
-        Test the most simple transformer typing
+        Test the typing of a simple transformer flow
         """
 
         graph = square >> square_root
@@ -42,7 +43,7 @@ class TestBasicTransformerTypes(MypyTestSuite):
 
     def test_flow_with_mixed_types(self):
         """
-        Test the most simple transformer typing
+        Test the typing of a transformer flow with mixed output types
         """
 
         graph = square >> square_root >> to_string
@@ -51,7 +52,7 @@ class TestBasicTransformerTypes(MypyTestSuite):
 
     def test_divergent_flow_types(self):
         """
-        Test the most simple transformer typing
+        Test the typing of transformer flows with divergent outputs
         """
 
         graph2 = square >> square_root >> (to_string, square)
@@ -86,7 +87,20 @@ class TestBasicTransformerTypes(MypyTestSuite):
             graph7, Transformer[float, tuple[str, float, str, float, str, float, str]]
         )
 
+    def test_bridge(self):
+        """
+        Test the bridge functionality in transformer flows
+        """
+        num_bridge = bridge[float]("num")
+
+        graph = plus1 >> num_bridge.pick() >> minus1 >> num_bridge.drop()
+
+        assert_type(graph, Transformer[float, tuple[float, float]])
+
     def test_async_transformer(self):
+        """
+        Test the typing of async transformers
+        """
         @async_transformer
         async def _square(num: int) -> float:
             return float(num * num)
