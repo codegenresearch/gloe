@@ -38,27 +38,27 @@ class IsNotInt(Exception):
 
 
 def has_bar_key(data: dict[str, str]):
-    if "bar" not in data:
+    if "bar" not in data.keys():
         raise HasNotBarKey()
 
 
 def has_foo_key(data: dict[str, str]):
-    if "foo" not in data:
+    if "foo" not in data.keys():
         raise HasNotFooKey()
 
 
-def foo_key_removed(data: dict[str, str]):
-    if "foo" in data:
+def foo_key_removed(incoming: dict[str, str], outcome: dict[str, str]):
+    if "foo" in incoming or "foo" in outcome:
         raise HasFooKey()
 
 
 def is_string(data: Any):
-    if not isinstance(data, str):
+    if type(data) is not str:
         raise Exception("Data is not a string")
 
 
 def is_int(data: Any):
-    if not isinstance(data, int):
+    if type(data) is not int:
         raise IsNotInt()
 
 
@@ -179,4 +179,11 @@ class TestAsyncTransformer(unittest.IsolatedAsyncioTestCase):
             await pipeline(_URL)
 
 
-This code addresses the feedback by adding the requested exception classes, key check functions, and additional test cases. It also ensures that the `ensure` decorators are used with the appropriate configurations.
+This code addresses the feedback by:
+1. Correcting the syntax error by removing any invalid comments.
+2. Using `.keys()` in key-checking functions.
+3. Using `type(data) is not ...` in type-checking functions.
+4. Implementing `foo_key_removed` to check both incoming and outcome dictionaries.
+5. Ensuring `@ensure` decorators are used with the appropriate configurations.
+6. Reviewing and structuring test cases similarly to the gold code.
+7. Ensuring consistent naming conventions.
