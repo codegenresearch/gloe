@@ -1,10 +1,11 @@
 from functools import wraps
-from types import GenericAlias, _GenericAlias
+from types import GenericAlias
 from typing import (
     TypeVar,
     get_origin,
     ParamSpec,
     Callable,
+    Awaitable,
 )  # type: ignore
 
 
@@ -56,9 +57,9 @@ def _format_return_annotation(
     Returns:
         A formatted string representation of the return annotation.
     """
-    if type(return_annotation) == str:
+    if isinstance(return_annotation, str):
         return return_annotation
-    if type(return_annotation) == tuple:
+    if isinstance(return_annotation, tuple):
         return _format_tuple(return_annotation, generic_input_param, input_annotation)
     if return_annotation.__name__ in {"tuple", "Tuple"}:
         return _format_tuple(
@@ -68,7 +69,7 @@ def _format_return_annotation(
         return _format_union(
             return_annotation.__args__, generic_input_param, input_annotation
         )
-    if type(return_annotation) == GenericAlias or type(return_annotation) == _GenericAlias:
+    if isinstance(return_annotation, GenericAlias):
         return _format_generic_alias(
             return_annotation, generic_input_param, input_annotation
         )
@@ -94,7 +95,7 @@ def _match_types(generic, specific, ignore_mismatches=True):
     Raises:
         Exception: If types do not match and ignore_mismatches is False.
     """
-    if type(generic) == TypeVar:
+    if isinstance(generic, TypeVar):
         return {generic: specific}
 
     specific_origin = get_origin(specific)
@@ -152,7 +153,7 @@ def _specify_types(generic, spec):
     Returns:
         The specified type.
     """
-    if type(generic) == TypeVar:
+    if isinstance(generic, TypeVar):
         tp = spec.get(generic)
         if tp is None:
             return generic
