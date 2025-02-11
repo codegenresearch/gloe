@@ -26,7 +26,7 @@ class TestBasicTransformerTypes(MypyTestSuite):
 
     def test_transformer_simple_typing(self):
         """
-        Test the basic transformer typing
+        Test the most simple transformer typing
         """
 
         graph = square
@@ -34,7 +34,7 @@ class TestBasicTransformerTypes(MypyTestSuite):
 
     def test_simple_flow_typing(self):
         """
-        Test the typing of a simple transformer flow
+        Test the most simple transformer typing
         """
 
         graph = square >> square_root
@@ -43,7 +43,7 @@ class TestBasicTransformerTypes(MypyTestSuite):
 
     def test_flow_with_mixed_types(self):
         """
-        Test the typing of a transformer flow with mixed output types
+        Test the most simple transformer typing
         """
 
         graph = square >> square_root >> to_string
@@ -52,7 +52,7 @@ class TestBasicTransformerTypes(MypyTestSuite):
 
     def test_divergent_flow_types(self):
         """
-        Test the typing of transformer flows with divergent outputs
+        Test the most simple transformer typing
         """
 
         graph2 = square >> square_root >> (to_string, square)
@@ -89,7 +89,7 @@ class TestBasicTransformerTypes(MypyTestSuite):
 
     def test_bridge(self):
         """
-        Test the bridge functionality in transformer flows
+        Test the most simple transformer typing
         """
         num_bridge = bridge[float]("num")
 
@@ -99,7 +99,7 @@ class TestBasicTransformerTypes(MypyTestSuite):
 
     def test_async_transformer(self):
         """
-        Test the typing of async transformers
+        Test the most simple transformer typing
         """
         @async_transformer
         async def _square(num: int) -> float:
