@@ -44,11 +44,11 @@ def _resolve_serial_connection_signatures(transformer2: BaseTransformer, generic
     )
     return new_signature
 
-def _nerge_serial(transformer1: BaseTransformer, _transformer2: BaseTransformer) -> BaseTransformer:
+def _nerge_serial(transformer1: BaseTransformer, transformer2: BaseTransformer) -> BaseTransformer:
     if transformer1.previous is None:
         transformer1 = transformer1.copy(regenerate_instance_id=True)
 
-    transformer2 = _transformer2.copy(regenerate_instance_id=True)
+    transformer2 = transformer2.copy(regenerate_instance_id=True)
     transformer2._set_previous(transformer1)
 
     signature1: Signature = transformer1.signature()
@@ -73,18 +73,18 @@ def _nerge_serial(transformer1: BaseTransformer, _transformer2: BaseTransformer)
             return len(transformer1) + len(transformer2)
 
     new_transformer: BaseTransformer | None = None
-    if is_transformer(transformer1) and is_transformer(_transformer2):
+    if is_transformer(transformer1) and is_transformer(transformer2):
         class NewTransformer1(BaseNewTransformer, Transformer[_In, _NextOut]):
             def transform(self, data: _In) -> _NextOut:
-                return _transformer2(transformer1(data))
+                return transformer2(transformer1(data))
 
         new_transformer = NewTransformer1()
 
-    elif is_async_transformer(transformer1) and is_transformer(_transformer2):
+    elif is_async_transformer(transformer1) and is_transformer(transformer2):
         class NewTransformer2(BaseNewTransformer, AsyncTransformer[_In, _NextOut]):
             async def transform_async(self, data: _In) -> _NextOut:
                 transformer1_out = await transformer1(data)
-                return _transformer2(transformer1_out)
+                return transformer2(transformer1_out)
 
         new_transformer = NewTransformer2()
 
@@ -96,16 +96,16 @@ def _nerge_serial(transformer1: BaseTransformer, _transformer2: BaseTransformer)
 
         new_transformer = NewTransformer3()
 
-    elif is_transformer(transformer1) and is_async_transformer(_transformer2):
+    elif is_transformer(transformer1) and is_async_transformer(transformer2):
         class NewTransformer4(AsyncTransformer[_In, _NextOut]):
             async def transform_async(self, data: _In) -> _NextOut:
                 transformer1_out = transformer1(data)
-                return await _transformer2(transformer1_out)
+                return await transformer2(transformer1_out)
 
         new_transformer = NewTransformer4()
 
     else:
-        raise UnsupportedTransformerArgException(_transformer2)
+        raise UnsupportedTransformerArgException(transformer2)
 
     return _resolve_new_merge_transformers(new_transformer, transformer2)
 
@@ -217,11 +217,11 @@ def _compose_nodes(current: BaseTransformer, next_node: BaseTransformer | Tuple[
 
 
 This revised code addresses the feedback by:
-1. Ensuring all function parameters and return types are consistently annotated.
-2. Using `MethodType` for method assignments.
-3. Consistent variable naming.
-4. Using `GenericAlias` for return annotations in `_merge_diverging`.
-5. Adding checks for coroutine functions in async sections.
-6. Enhancing error handling with more specific context.
-7. Organizing code for better structure and readability.
-8. Correcting the syntax error by removing the invalid comment fragment.
+1. Removing the invalid comment fragment that caused the `SyntaxError`.
+2. Ensuring all function parameters and return types are consistently annotated.
+3. Using `MethodType` for method assignments.
+4. Maintaining consistent variable naming conventions.
+5. Using `GenericAlias` for return annotations in `_merge_diverging`.
+6. Adding checks for coroutine functions in async sections.
+7. Enhancing error handling with more specific context.
+8. Organizing code for better structure and readability.
