@@ -69,7 +69,7 @@ def _format_return_annotation(
         return _format_union(
             return_annotation.__args__, generic_input_param, input_annotation
         )
-    if type(return_annotation) in {GenericAlias, _GenericAlias}:
+    if type(return_annotation) == GenericAlias:
         return _format_generic_alias(
             return_annotation, generic_input_param, input_annotation
         )
