@@ -1,11 +1,10 @@
 from functools import wraps
-from types import GenericAlias
+from types import GenericAlias, _GenericAlias
 from typing import (
     TypeVar,
     get_origin,
     ParamSpec,
     Callable,
-    Awaitable,
 )  # type: ignore
 
 
@@ -69,7 +68,7 @@ def _format_return_annotation(
         return _format_union(
             return_annotation.__args__, generic_input_param, input_annotation
         )
-    if type(return_annotation) == GenericAlias:
+    if type(return_annotation) == GenericAlias or type(return_annotation) == _GenericAlias:
         return _format_generic_alias(
             return_annotation, generic_input_param, input_annotation
         )
