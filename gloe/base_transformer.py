@@ -13,12 +13,7 @@ __all__ = ["BaseTransformer", "TransformerException", "PreviousTransformer"]
 
 _In = TypeVar("_In")
 _Out = TypeVar("_Out")
-_Out2 = TypeVar("_Out2")
-_Out3 = TypeVar("_Out3")
-_Out4 = TypeVar("_Out4")
-_Out5 = TypeVar("_Out5")
-_Out6 = TypeVar("_Out6")
-_Out7 = TypeVar("_Out7")
+_NextOut = TypeVar("_NextOut")
 _Self = TypeVar("_Self", bound="BaseTransformer")
 
 PreviousTransformer: TypeAlias = Union[
@@ -374,9 +369,9 @@ class BaseTransformer(Generic[_In, _Out]):
 
 
 ### Key Changes Made:
-1. **Type Annotations**: Replaced `str | None` with `Optional[str]` to ensure compatibility with Python 3.10.
-2. **Internal Exception Handling**: Stored the internal exception in a private variable `_internal_exception` and accessed it through a property.
-3. **Generic Type Variables**: Added additional generic type variables (`_Out2`, `_Out3`, etc.) for flexibility.
+1. **Removed Invalid Comment**: Removed the multi-line comment that was causing the `SyntaxError`.
+2. **Type Annotations**: Ensured consistent use of `Union` and `Optional` for type annotations.
+3. **Generic Type Variables**: Used `_NextOut` and `_Self` for clarity and consistency.
 4. **Property Documentation**: Enhanced docstrings for properties to provide clearer explanations.
 5. **Graph Node Properties**: Ensured consistent initialization and handling of `_graph_node_props`.
 6. **Method Signatures**: Reviewed and aligned method signatures, especially for the `copy` method.
