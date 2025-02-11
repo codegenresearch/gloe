@@ -95,7 +95,7 @@ class GloeLightStyle(Style):
         Generic.Strong: "bold",
         Generic.EmphStrong: "bold italic",
         Generic.Prompt: "#555555",
-        Generic.Output: "#333333",
+        Generic.Output: "#666666",
         Generic.Traceback: "#ff3a3a",
         Error: "bg:#ffe0e0 #a61717",
     }
