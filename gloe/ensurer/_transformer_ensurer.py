@@ -1,32 +1,31 @@
 import inspect
 from abc import abstractmethod, ABC
-from typing import Any, Callable, Generic, Sequence, TypeVar, cast
+from types import FunctionType
+from typing import Any, Callable, Generic, ParamSpec, Sequence, TypeVar, cast, overload
 
 from gloe.async_transformer import AsyncTransformer
 from gloe.functional import _PartialTransformer, _PartialAsyncTransformer
 from gloe.transformers import Transformer
 
-T = TypeVar("T")
-S = TypeVar("S")
-U = TypeVar("U")
+_T = TypeVar("_T")
+_S = TypeVar("_S")
+_U = TypeVar("_U")
+_P1 = ParamSpec("_P1")
 
 
-class TransformerEnsurer(Generic[T, S], ABC):
+class TransformerEnsurer(Generic[_T, _S], ABC):
     @abstractmethod
-    def validate_input(self, data: T):
+    def validate_input(self, data: _T):
         """Validate incoming data before executing the transformer."""
 
     @abstractmethod
-    def validate_output(self, data: T, output: S):
+    def validate_output(self, data: _T, output: _S):
         """Validate output data after executing the transformer."""
 
-    def __call__(self, transformer: Transformer[T, S]) -> Transformer[T, S]:
-        def transform(this: Transformer, data: T) -> S:
+    def __call__(self, transformer: Transformer[_T, _S]) -> Transformer[_T, _S]:
+        def transform(this: Transformer, data: _T) -> _S:
             self.validate_input(data)
-            try:
-                output = transformer.transform(data)
-            except Exception as e:
-                raise RuntimeError(f"Error during transformation: {e}")
+            output = transformer.transform(data)
             self.validate_output(data, output)
             return output
 
@@ -34,22 +33,34 @@ class TransformerEnsurer(Generic[T, S], ABC):
         return transformer_cp
 
 
-def input_ensurer(func: Callable[[T], Any]) -> TransformerEnsurer[T, Any]:
-    class LambdaEnsurer(TransformerEnsurer[T, S]):
+def input_ensurer(func: Callable[[_T], Any]) -> TransformerEnsurer[_T, Any]:
+    class LambdaEnsurer(TransformerEnsurer[_T, _S]):
         __doc__ = func.__doc__
+        __annotations__ = cast(FunctionType, func).__annotations__
 
-        def validate_input(self, data: T):
+        def validate_input(self, data: _T):
             func(data)
 
-        def validate_output(self, data: T, output: S):
+        def validate_output(self, data: _T, output: _S):
             pass
 
     return LambdaEnsurer()
 
 
+@overload
+def output_ensurer(func: Callable[[_T, _S], Any]) -> TransformerEnsurer[_T, _S]:
+    ...
+
+
+@overload
+def output_ensurer(func: Callable[[_S], Any]) -> TransformerEnsurer[Any, _S]:
+    ...
+
+
 def output_ensurer(func: Callable) -> TransformerEnsurer:
     class LambdaEnsurer(TransformerEnsurer):
         __doc__ = func.__doc__
+        __annotations__ = cast(FunctionType, func).__annotations__
 
         def validate_input(self, data):
             pass
@@ -65,6 +76,26 @@ def output_ensurer(func: Callable) -> TransformerEnsurer:
 
 
 class _ensure_base:
+    @overload
+    def __call__(self, transformer: Transformer[_U, _S]) -> Transformer[_U, _S]:
+        ...
+
+    @overload
+    def __call__(
+        self, transformer_init: _PartialTransformer[_T, _P1, _U]
+    ) -> _PartialTransformer[_T, _P1, _U]:
+        ...
+
+    @overload
+    def __call__(self, transformer: AsyncTransformer[_U, _S]) -> AsyncTransformer[_U, _S]:
+        ...
+
+    @overload
+    def __call__(
+        self, transformer_init: _PartialAsyncTransformer[_T, _P1, _U]
+    ) -> _PartialAsyncTransformer[_T, _P1, _U]:
+        ...
+
     def __call__(self, arg):
         if isinstance(arg, Transformer):
             return self._generate_new_transformer(arg)
@@ -98,18 +129,15 @@ class _ensure_base:
         pass
 
 
-class _ensure_incoming(Generic[T], _ensure_base):
-    def __init__(self, incoming: Sequence[Callable[[T], Any]]):
-        self.input_ensurers = [input_ensurer(ensurer) for ensurer in incoming]
+class _ensure_incoming(Generic[_T], _ensure_base):
+    def __init__(self, incoming: Sequence[Callable[[_T], Any]]):
+        self.input_ensurers_instances = [input_ensurer(ensurer) for ensurer in incoming]
 
     def _generate_new_transformer(self, transformer: Transformer) -> Transformer:
-        def transform(_, data: T) -> S:
-            for ensurer in self.input_ensurers:
+        def transform(_, data: _T) -> _S:
+            for ensurer in self.input_ensurers_instances:
                 ensurer.validate_input(data)
-            try:
-                output = transformer.transform(data)
-            except Exception as e:
-                raise RuntimeError(f"Error during transformation: {e}")
+            output = transformer.transform(data)
             return output
 
         transformer_cp = transformer.copy(transform)
@@ -118,30 +146,24 @@ class _ensure_incoming(Generic[T], _ensure_base):
     def _generate_new_async_transformer(
         self, transformer: AsyncTransformer
     ) -> AsyncTransformer:
-        async def transform_async(_, data: T) -> S:
-            for ensurer in self.input_ensurers:
+        async def transform_async(_, data: _T) -> _S:
+            for ensurer in self.input_ensurers_instances:
                 ensurer.validate_input(data)
-            try:
-                output = await transformer.transform_async(data)
-            except Exception as e:
-                raise RuntimeError(f"Error during asynchronous transformation: {e}")
+            output = await transformer.transform_async(data)
             return output
 
         transformer_cp = transformer.copy(transform_async)
         return transformer_cp
 
 
-class _ensure_outcome(Generic[S], _ensure_base):
-    def __init__(self, outcome: Sequence[Callable[[S], Any]]):
-        self.output_ensurers = [output_ensurer(ensurer) for ensurer in outcome]
+class _ensure_outcome(Generic[_S], _ensure_base):
+    def __init__(self, outcome: Sequence[Callable[[_S], Any]]):
+        self.output_ensurers_instances = [output_ensurer(ensurer) for ensurer in outcome]
 
     def _generate_new_transformer(self, transformer: Transformer) -> Transformer:
-        def transform(_, data: T) -> S:
-            try:
-                output = transformer.transform(data)
-            except Exception as e:
-                raise RuntimeError(f"Error during transformation: {e}")
-            for ensurer in self.output_ensurers:
+        def transform(_, data: _T) -> _S:
+            output = transformer.transform(data)
+            for ensurer in self.output_ensurers_instances:
                 ensurer.validate_output(data, output)
             return output
 
@@ -151,12 +173,9 @@ class _ensure_outcome(Generic[S], _ensure_base):
     def _generate_new_async_transformer(
         self, transformer: AsyncTransformer
     ) -> AsyncTransformer:
-        async def transform_async(_, data: T) -> S:
-            try:
-                output = await transformer.transform_async(data)
-            except Exception as e:
-                raise RuntimeError(f"Error during asynchronous transformation: {e}")
-            for ensurer in self.output_ensurers:
+        async def transform_async(_, data: _T) -> _S:
+            output = await transformer.transform_async(data)
+            for ensurer in self.output_ensurers_instances:
                 ensurer.validate_output(data, output)
             return output
 
@@ -164,17 +183,14 @@ class _ensure_outcome(Generic[S], _ensure_base):
         return transformer_cp
 
 
-class _ensure_changes(Generic[T, S], _ensure_base):
-    def __init__(self, changes: Sequence[Callable[[T, S], Any]]):
-        self.changes_ensurers = [output_ensurer(ensurer) for ensurer in changes]
+class _ensure_changes(Generic[_T, _S], _ensure_base):
+    def __init__(self, changes: Sequence[Callable[[_T, _S], Any]]):
+        self.changes_ensurers_instances = [output_ensurer(ensurer) for ensurer in changes]
 
     def _generate_new_transformer(self, transformer: Transformer) -> Transformer:
-        def transform(_, data: T) -> S:
-            try:
-                output = transformer.transform(data)
-            except Exception as e:
-                raise RuntimeError(f"Error during transformation: {e}")
-            for ensurer in self.changes_ensurers:
+        def transform(_, data: _T) -> _S:
+            output = transformer.transform(data)
+            for ensurer in self.changes_ensurers_instances:
                 ensurer.validate_output(data, output)
             return output
 
@@ -184,12 +200,9 @@ class _ensure_changes(Generic[T, S], _ensure_base):
     def _generate_new_async_transformer(
         self, transformer: AsyncTransformer
     ) -> AsyncTransformer:
-        async def transform_async(_, data: T) -> S:
-            try:
-                output = await transformer.transform_async(data)
-            except Exception as e:
-                raise RuntimeError(f"Error during asynchronous transformation: {e}")
-            for ensurer in self.changes_ensurers:
+        async def transform_async(_, data: _T) -> _S:
+            output = await transformer.transform_async(data)
+            for ensurer in self.changes_ensurers_instances:
                 ensurer.validate_output(data, output)
             return output
 
@@ -197,27 +210,30 @@ class _ensure_changes(Generic[T, S], _ensure_base):
         return transformer_cp
 
 
-class _ensure_both(Generic[T, S], _ensure_base):
+class _ensure_both(Generic[_T, _S], _ensure_base):
     def __init__(
         self,
-        incoming: Sequence[Callable[[T], Any]],
-        outcome: Sequence[Callable[[S], Any]],
-        changes: Sequence[Callable[[T, S], Any]],
+        incoming: Sequence[Callable[[_T], Any]],
+        outcome: Sequence[Callable[[_S], Any]],
+        changes: Sequence[Callable[[_T, _S], Any]],
     ):
-        self.input_ensurers = [input_ensurer(ensurer) for ensurer in incoming]
-        self.output_ensurers = [output_ensurer(ensurer) for ensurer in outcome]
-        self.changes_ensurers = [output_ensurer(ensurer) for ensurer in changes]
-        self.output_ensurers.extend(self.changes_ensurers)
+        self.input_ensurers_instances = [
+            input_ensurer(ensurer) for ensurer in incoming
+        ]
+        self.output_ensurers_instances = [
+            output_ensurer(ensurer) for ensurer in outcome
+        ]
+        self.changes_ensurers_instances = [
+            output_ensurer(ensurer) for ensurer in changes
+        ]
+        self.output_ensurers_instances.extend(self.changes_ensurers_instances)
 
     def _generate_new_transformer(self, transformer: Transformer) -> Transformer:
-        def transform(_, data: T) -> S:
-            for ensurer in self.input_ensurers:
+        def transform(_, data: _T) -> _S:
+            for ensurer in self.input_ensurers_instances:
                 ensurer.validate_input(data)
-            try:
-                output = transformer.transform(data)
-            except Exception as e:
-                raise RuntimeError(f"Error during transformation: {e}")
-            for ensurer in self.output_ensurers:
+            output = transformer.transform(data)
+            for ensurer in self.output_ensurers_instances:
                 ensurer.validate_output(data, output)
             return output
 
@@ -227,19 +243,61 @@ class _ensure_both(Generic[T, S], _ensure_base):
     def _generate_new_async_transformer(
         self, transformer: AsyncTransformer
     ) -> AsyncTransformer:
-        async def transform_async(_, data: T) -> S:
-            for ensurer in self.input_ensurers:
+        async def transform_async(_, data: _T) -> _S:
+            for ensurer in self.input_ensurers_instances:
                 ensurer.validate_input(data)
-            try:
-                output = await transformer.transform_async(data)
-            except Exception as e:
-                raise RuntimeError(f"Error during asynchronous transformation: {e}")
-            for ensurer in self.output_ensurers:
+            output = await transformer.transform_async(data)
+            for ensurer in self.output_ensurers_instances:
                 ensurer.validate_output(data, output)
             return output
 
         transformer_cp = transformer.copy(transform_async)
         return transformer_cp
+
+
+@overload
+def ensure(incoming: Sequence[Callable[[_T], Any]]) -> _ensure_incoming[_T]:
+    ...
+
+
+@overload
+def ensure(outcome: Sequence[Callable[[_S], Any]]) -> _ensure_outcome[_S]:
+    ...
+
+
+@overload
+def ensure(changes: Sequence[Callable[[_T, _S], Any]]) -> _ensure_changes[_T, _S]:
+    ...
+
+
+@overload
+def ensure(
+    incoming: Sequence[Callable[[_T], Any]], outcome: Sequence[Callable[[_S], Any]]
+) -> _ensure_both[_T, _S]:
+    ...
+
+
+@overload
+def ensure(
+    incoming: Sequence[Callable[[_T], Any]], changes: Sequence[Callable[[_T, _S], Any]]
+) -> _ensure_both[_T, _S]:
+    ...
+
+
+@overload
+def ensure(
+    outcome: Sequence[Callable[[_T], Any]], changes: Sequence[Callable[[_T, _S], Any]]
+) -> _ensure_both[_T, _S]:
+    ...
+
+
+@overload
+def ensure(
+    incoming: Sequence[Callable[[_T], Any]],
+    outcome: Sequence[Callable[[_S], Any]],
+    changes: Sequence[Callable[[_T, _S], Any]],
+) -> _ensure_both[_T, _S]:
+    ...
 
 
 def ensure(*args, **kwargs):
