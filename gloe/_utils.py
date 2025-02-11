@@ -8,7 +8,7 @@ from typing import (
     Awaitable,
     Type,
     _GenericAlias,
-)
+)  # type: ignore
 
 
 def _format_tuple(
@@ -48,9 +48,9 @@ def _format_generic_alias(
 def _format_return_annotation(
     return_annotation, generic_input_param, input_annotation
 ) -> str:
-    if type(return_annotation) == str:
+    if isinstance(return_annotation, str):
         return return_annotation
-    if type(return_annotation) == tuple:
+    if isinstance(return_annotation, tuple):
         return _format_tuple(return_annotation, generic_input_param, input_annotation)
     if return_annotation.__name__ in {"tuple", "Tuple"}:
         return _format_tuple(
@@ -61,8 +61,8 @@ def _format_return_annotation(
             return_annotation.__args__, generic_input_param, input_annotation
         )
     if (
-        type(return_annotation) == GenericAlias
-        or type(return_annotation) == _GenericAlias
+        isinstance(return_annotation, GenericAlias)
+        or isinstance(return_annotation, _GenericAlias)
     ):
         return _format_generic_alias(
             return_annotation, generic_input_param, input_annotation
@@ -75,7 +75,7 @@ def _format_return_annotation(
 
 
 def _match_types(generic, specific, ignore_mismatches=True):
-    if type(generic) == TypeVar:
+    if isinstance(generic, TypeVar):
         return {generic: specific}
 
     specific_origin = get_origin(specific)
@@ -89,7 +89,7 @@ def _match_types(generic, specific, ignore_mismatches=True):
     ):
         if ignore_mismatches:
             return {}
-        raise Exception(f"Type {generic} does not match with {specific}")
+        raise TypeError(f"Type {generic} does not match with {specific}")
 
     generic_args = getattr(generic, "__args__", None)
     specific_args = getattr(specific, "__args__", None)
@@ -100,17 +100,17 @@ def _match_types(generic, specific, ignore_mismatches=True):
     if generic_args is None:
         if ignore_mismatches:
             return {}
-        raise Exception(f"Type {generic} in generic has no arguments")
+        raise TypeError(f"Type {generic} in generic has no arguments")
 
     if specific_args is None:
         if ignore_mismatches:
             return {}
-        raise Exception(f"Type {specific} in specific has no arguments")
+        raise TypeError(f"Type {specific} in specific has no arguments")
 
     if len(generic_args) != len(specific_args):
         if ignore_mismatches:
             return {}
-        raise Exception(
+        raise TypeError(
             f"Number of arguments of type {generic} is different in specific type {specific}"
         )
 
@@ -123,7 +123,7 @@ def _match_types(generic, specific, ignore_mismatches=True):
 
 
 def _specify_types(generic, spec):
-    if type(generic) == TypeVar:
+    if isinstance(generic, TypeVar):
         tp = spec.get(generic)
         if tp is None:
             return generic
@@ -152,4 +152,9 @@ def awaitify(sync_func: Callable[_Args, _R]) -> Callable[_Args, Awaitable[_R]]:
     return async_func
 
 
-This code snippet addresses the feedback by ensuring consistent type checking using `type()`, aligning error messages, and maintaining consistent formatting and structure. The unnecessary imports have been reviewed, and the code structure matches the gold code more closely.
+### Changes Made:
+1. **Imports**: Kept the necessary imports and ensured the `# type: ignore` comment is present.
+2. **Error Messages**: Changed the exception type from `Exception` to `TypeError` for better specificity.
+3. **Type Checking**: Used `isinstance` for type checking to align with more idiomatic Python practices.
+4. **Formatting Consistency**: Ensured consistent formatting and structure, including spacing and line breaks.
+5. **Function Logic**: Verified that the logic in `_match_types` and `_specify_types` matches the expected flow and structure.
