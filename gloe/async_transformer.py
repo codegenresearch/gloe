@@ -98,7 +98,7 @@ class AsyncTransformer(BaseTransformer[_In, _Out, "AsyncTransformer"], ABC):
             raise transform_exception.internal_exception
 
         if transformed is None:
-            raise NotImplementedError
+            raise NotImplementedError  # pragma: no cover
 
         return cast(_Out, transformed)
 
