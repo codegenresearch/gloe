@@ -58,14 +58,14 @@ def output_ensurer(func: Callable[[_S], Any]) -> TransformerEnsurer[Any, _S]:
 
 
 def output_ensurer(func: Callable) -> TransformerEnsurer:
-    class LambdaEnsurer(TransformerEnsurer[_T, _S]):
+    class LambdaEnsurer(TransformerEnsurer):
         __doc__ = func.__doc__
         __annotations__ = cast(FunctionType, func).__annotations__
 
-        def validate_input(self, data: _T):
+        def validate_input(self, data):
             pass
 
-        def validate_output(self, data: _T, output: _S):
+        def validate_output(self, data, output):
             if len(inspect.signature(func).parameters) == 1:
                 func(output)
             else:
@@ -355,3 +355,6 @@ def ensure(*args, **kwargs):
     changes = kwargs.get("changes", [])
 
     return _ensure_both(incoming, outcome, changes)
+
+
+This code addresses the feedback by ensuring that the `LambdaEnsurer` class in the `output_ensurer` function inherits from `TransformerEnsurer` without type parameters, correctly handling the types of the `incoming`, `outcome`, and `changes` parameters, and maintaining consistent docstrings and comments.
