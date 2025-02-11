@@ -15,13 +15,6 @@ from typing import (
 from gloe.async_transformer import AsyncTransformer
 from gloe.transformers import Transformer
 
-# :root {
-#     --background-color-light: #ffffff;
-#     --text-color-light: #000000;
-#     --background-color-dark: #121212;
-#     --text-color-dark: #ffffff;
-# }
-
 __all__ = [
     "transformer",
     "partial_transformer",
@@ -65,9 +58,9 @@ def partial_transformer(
     func: Callable[Concatenate[A, P1], S]
 ) -> _PartialTransformer[A, P1, S]:
     """
-    This decorator let us create partial transformers, which are transformers that
+    This decorator allows the creation of partial transformers, which are transformers that
     allow for partial application of their arguments. This capability is particularly
-    useful for creating configurable transformer instances where some arguments are preset
+    useful for creating configurable transformer instances where some arguments are preset,
     enhancing modularity and reusability in data processing pipelines.
 
     See Also:
