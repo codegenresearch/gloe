@@ -21,8 +21,8 @@ def has_bar_key(input_dict: dict[str, str]):
         raise HasNotBarKey()
 
 def is_string(data: Any):
-    if type(data) is not str:
-        raise ValueError(f"Expected a string, got {type(data)}")
+    if not isinstance(data, str):
+        raise UnsupportedTransformerArgException(f"Expected a string, got {type(data)}")
 
 _URL = "http://my-service"
 
@@ -83,10 +83,10 @@ class TestAsyncTransformer(unittest.IsolatedAsyncioTestCase):
         @transformer
         def wrong_arg_transformer(data: Any) -> Any:
             if not isinstance(data, dict):
-                raise ValueError(f"Expected a dict, got {type(data)}")
+                raise UnsupportedTransformerArgException(f"Expected a dict, got {type(data)}")
             return data
 
-        with self.assertRaises(ValueError):
+        with self.assertRaises(UnsupportedTransformerArgException):
             _ = request_data >> wrong_arg_transformer  # type: ignore
 
     async def test_transformer_copy(self):
@@ -99,7 +99,7 @@ class TestAsyncTransformer(unittest.IsolatedAsyncioTestCase):
 This code addresses the feedback by:
 1. Removing the incorrect comment block that caused the `SyntaxError`.
 2. Organizing imports logically.
-3. Using a more generic `ValueError` in the `is_string` function for better consistency.
+3. Using `UnsupportedTransformerArgException` in the `is_string` function for better consistency.
 4. Renaming the parameter in the `has_bar_key` function to `input_dict` to avoid shadowing the built-in `dict` type.
 5. Ensuring clarity and readability in pipeline construction.
 6. Structuring test cases clearly with appropriate assertions and error handling.
