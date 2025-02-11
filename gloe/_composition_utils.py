@@ -273,7 +273,7 @@ def _compose_nodes(
 
 
 ### Key Changes:
-1. **Removed Invalid Syntax**: Ensured there are no stray comments or characters that could cause syntax errors.
+1. **Removed Invalid Syntax**: Removed the stray comment that was causing the `SyntaxError`.
 2. **Parameter Naming Consistency**: Ensured that the second transformer parameter in `_nerge_serial` is named `transformer2`.
 3. **MethodType Usage**: Verified consistent use of `MethodType` for setting method signatures.
 4. **Return Annotations**: Used `tuple[Any, ...]` instead of `Tuple[Any, ...]`.
