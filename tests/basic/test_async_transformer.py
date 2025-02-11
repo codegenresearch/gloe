@@ -67,12 +67,12 @@ def has_foo_key(data: dict[str, str]):
 
 
 def is_int(data: Any):
-    if not isinstance(data, int):
+    if type(data) is not int:
         raise IsNotInt()
 
 
 def is_str(data: Any):
-    if not isinstance(data, str):
+    if type(data) is not str:
         raise Exception("data is not string")
 
 
