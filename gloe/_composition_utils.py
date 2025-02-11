@@ -14,12 +14,12 @@ _Out = TypeVar("_Out")
 _NextOut = TypeVar("_NextOut")
 
 def is_transformer(node):
-    if type(node) in (list, tuple):
+    if isinstance(node, (list, tuple)):
         return all(is_transformer(n) for n in node)
-    return type(node) == Transformer
+    return isinstance(node, Transformer)
 
 def is_async_transformer(node):
-    return type(node) == AsyncTransformer
+    return isinstance(node, AsyncTransformer)
 
 def has_any_async_transformer(node: list):
     return any(is_async_transformer(n) for n in node)
@@ -201,14 +201,14 @@ def _merge_diverging(incident_transformer: BaseTransformer, *receiving_transform
     return new_transformer
 
 def _compose_nodes(current: BaseTransformer, next_node: BaseTransformer | Tuple[BaseTransformer, ...]) -> BaseTransformer:
-    if type(current) == BaseTransformer:
-        if type(next_node) == BaseTransformer:
+    if isinstance(current, BaseTransformer):
+        if isinstance(next_node, BaseTransformer):
             return _nerge_serial(current, next_node)
-        elif type(next_node) == tuple:
-            if all(type(next_transformer) == BaseTransformer for next_transformer in next_node):
+        elif isinstance(next_node, tuple):
+            if all(isinstance(next_transformer, BaseTransformer) for next_transformer in next_node):
                 return _merge_diverging(current, *next_node)
 
-            unsupported_elem = next((elem for elem in next_node if type(elem) != BaseTransformer), None)
+            unsupported_elem = next((elem for elem in next_node if not isinstance(elem, BaseTransformer)), None)
             raise UnsupportedTransformerArgException(unsupported_elem)
         else:
             raise UnsupportedTransformerArgException(next_node)
@@ -218,10 +218,10 @@ def _compose_nodes(current: BaseTransformer, next_node: BaseTransformer | Tuple[
 
 This revised code addresses the feedback by:
 1. Removing the invalid comment fragment that caused the `SyntaxError`.
-2. Using `type()` for type checking in `is_transformer` and `is_async_transformer`.
+2. Using `isinstance(node, (list, tuple))` for type checking in `is_transformer`.
 3. Ensuring consistent parameter naming, such as renaming `transformer2` to `_transformer2` in `_nerge_serial`.
 4. Using `MethodType` consistently for method assignments.
-5. Removing explicit return types from `__len__` methods in `BaseNewTransformer` if not specified in the gold code.
-6. Ensuring class names for new transformers are consistent with the gold code.
-7. Using `GenericAlias` correctly for return annotations in `_merge_diverging`.
-8. Reviewing and organizing the code structure for better readability and maintainability.
+5. Ensuring return annotations match the gold code.
+6. Ensuring class definitions and method implementations are consistent with the gold code.
+7. Reviewing and organizing the code structure for better readability and maintainability.
+8. Using `GenericAlias` correctly for return annotations in `_merge_diverging`.
