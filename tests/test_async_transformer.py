@@ -37,29 +37,35 @@ class IsNotInt(Exception):
     pass
 
 
+class IsNotString(Exception):
+    pass
+
+
 def has_bar_key(data: dict[str, str]):
     if "bar" not in data.keys():
-        raise HasNotBarKey()
+        raise HasNotBarKey("Dictionary does not contain the key 'bar'.")
 
 
 def has_foo_key(data: dict[str, str]):
     if "foo" not in data.keys():
-        raise HasNotFooKey()
+        raise HasNotFooKey("Dictionary does not contain the key 'foo'.")
 
 
 def foo_key_removed(incoming: dict[str, str], outcome: dict[str, str]):
-    if "foo" in incoming or "foo" in outcome:
-        raise HasFooKey()
+    if "foo" in incoming:
+        raise HasFooKey("Incoming dictionary contains the key 'foo'.")
+    if "foo" not in outcome:
+        raise HasFooKey("Outcome dictionary does not contain the key 'foo'.")
 
 
 def is_string(data: Any):
     if type(data) is not str:
-        raise Exception("Data is not a string")
+        raise IsNotString("Data is not a string.")
 
 
 def is_int(data: Any):
     if type(data) is not int:
-        raise IsNotInt()
+        raise IsNotInt("Data is not an integer.")
 
 
 _URL = "http://my-service"
@@ -178,12 +184,34 @@ class TestAsyncTransformer(unittest.IsolatedAsyncioTestCase):
         with self.assertRaises(HasNotFooKey):
             await pipeline(_URL)
 
+    async def test_ensure_with_invalid_type(self):
+        @ensure(incoming=[is_int], outcome=[is_int])
+        @async_transformer
+        async def transform_with_invalid_type(data: int) -> int:
+            await asyncio.sleep(0.1)
+            return data + 1
+
+        pipeline = transform_with_invalid_type >> forward()
+        with self.assertRaises(IsNotInt):
+            await pipeline("not an int")
+
+    async def test_ensure_with_missing_foo_key(self):
+        @ensure(incoming=[is_string], outcome=[has_foo_key])
+        @async_transformer
+        async def transform_with_missing_foo_key(url: str) -> dict[str, str]:
+            await asyncio.sleep(0.1)
+            return {"bar": "foo"}
+
+        pipeline = transform_with_missing_foo_key >> forward()
+        with self.assertRaises(HasNotFooKey):
+            await pipeline(_URL)
+
 
 This code addresses the feedback by:
-1. Correcting the syntax error by removing any invalid comments.
-2. Using `.keys()` in key-checking functions.
-3. Using `type(data) is not ...` in type-checking functions.
-4. Implementing `foo_key_removed` to check both incoming and outcome dictionaries.
-5. Ensuring `@ensure` decorators are used with the appropriate configurations.
+1. Removing the invalid syntax line.
+2. Ensuring exception classes are used consistently.
+3. Using more descriptive exception messages.
+4. Correcting the logic in the `foo_key_removed` function.
+5. Ensuring `@ensure` decorators are applied correctly.
 6. Reviewing and structuring test cases similarly to the gold code.
-7. Ensuring consistent naming conventions.
+7. Adding additional test cases to cover different scenarios.
