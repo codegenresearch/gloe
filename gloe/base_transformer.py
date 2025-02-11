@@ -1,9 +1,14 @@
 import copy
+import types
 import uuid
 import inspect
 from functools import cached_property
 from inspect import Signature
 from typing import Any, Callable, Generic, TypeVar, Union, cast, Iterable, get_args, get_origin, TypeAlias, Type
+from uuid import UUID
+from itertools import groupby
+import networkx as nx
+from networkx import DiGraph
 
 __all__ = ["BaseTransformer", "TransformerException", "PreviousTransformer"]
 
@@ -14,7 +19,12 @@ _Self = TypeVar("_Self", bound="BaseTransformer")
 PreviousTransformer: TypeAlias = Union[
     None,
     _Self,
-    tuple[_Self, ...],
+    tuple[_Self, _Self],
+    tuple[_Self, _Self, _Self],
+    tuple[_Self, _Self, _Self, _Self],
+    tuple[_Self, _Self, _Self, _Self, _Self],
+    tuple[_Self, _Self, _Self, _Self, _Self, _Self],
+    tuple[_Self, _Self, _Self, _Self, _Self, _Self, _Self],
 ]
 
 
@@ -34,6 +44,7 @@ class TransformerException(Exception):
 
     @property
     def internal_exception(self):
+        """Return the internal exception with traceback."""
         return self._internal_exception.with_traceback(self._traceback)
 
 
@@ -56,10 +67,12 @@ class BaseTransformer(Generic[_In, _Out, _Self]):
 
     @property
     def graph_node_props(self) -> dict[str, Any]:
+        """Properties of the graph node."""
         return self._graph_node_props
 
     @property
     def children(self) -> list[_Self]:
+        """Child transformers."""
         return self._children
 
     @property
@@ -69,12 +82,15 @@ class BaseTransformer(Generic[_In, _Out, _Self]):
 
     @property
     def invisible(self) -> bool:
+        """Indicates if the transformer is invisible in the graph."""
         return self._invisible
 
     def __hash__(self) -> int:
+        """Return the hash of the transformer."""
         return hash(self.id)
 
     def __eq__(self, other):
+        """Check equality based on the transformer's ID."""
         if isinstance(other, BaseTransformer):
             return self.id == other.id
         return NotImplemented
@@ -104,7 +120,7 @@ class BaseTransformer(Generic[_In, _Out, _Self]):
         return copied
 
     @property
-    def graph_nodes(self) -> dict[uuid.UUID, _Self]:
+    def graph_nodes(self) -> dict[UUID, _Self]:
         """Get all nodes in the graph."""
         nodes = {self.instance_id: self}
 
@@ -205,7 +221,7 @@ class BaseTransformer(Generic[_In, _Out, _Self]):
         if node_id not in net.nodes:
             net.add_node(node_id, **props)
         else:
-            net.nodes[node_id].update(props)
+            nx.set_node_attributes(net, {node_id: props})
         return node_id
 
     def _add_child_node(
@@ -359,4 +375,5 @@ class BaseTransformer(Generic[_In, _Out, _Self]):
         agraph.write(path)
 
     def __len__(self):
+        """Return the length of the transformer."""
         return 1
