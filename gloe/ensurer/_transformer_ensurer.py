@@ -13,17 +13,13 @@ _P1 = ParamSpec("_P1")
 
 
 class TransformerEnsurer(Generic[_T, _S], ABC):
-    def __init__(self, input_validator: Callable[[_T], Any] = None, output_validator: Callable[[_T, _S], Any] = None):
-        self.input_validator = input_validator
-        self.output_validator = output_validator
-
+    @abstractmethod
     def validate_input(self, data: _T):
-        if self.input_validator:
-            self.input_validator(data)
+        """Perform a validation on incoming data before executing the transformer code"""
 
+    @abstractmethod
     def validate_output(self, data: _T, output: _S):
-        if self.output_validator:
-            self.output_validator(data, output)
+        """Perform a validation on outcome data after executing the transformer code"""
 
     def __call__(self, transformer: Transformer[_T, _S]) -> Transformer[_T, _S]:
         def transform(this: Transformer, data: _T) -> _S:
@@ -37,7 +33,17 @@ class TransformerEnsurer(Generic[_T, _S], ABC):
 
 
 def input_ensurer(func: Callable[[_T], Any]) -> TransformerEnsurer[_T, Any]:
-    return TransformerEnsurer(input_validator=func)
+    class LambdaEnsurer(TransformerEnsurer[_T, Any]):
+        __doc__ = func.__doc__
+        __annotations__ = func.__annotations__
+
+        def validate_input(self, data: _T):
+            func(data)
+
+        def validate_output(self, data: _T, output: Any):
+            pass
+
+    return LambdaEnsurer()
 
 
 @overload
@@ -51,13 +57,20 @@ def output_ensurer(func: Callable[[_S], Any]) -> TransformerEnsurer[Any, _S]:
 
 
 def output_ensurer(func: Callable):
-    def validate_output(data, output):
-        if len(inspect.signature(func).parameters) == 1:
-            func(output)
-        else:
-            func(data, output)
+    class LambdaEnsurer(TransformerEnsurer):
+        __doc__ = func.__doc__
+        __annotations__ = func.__annotations__
 
-    return TransformerEnsurer(output_validator=validate_output)
+        def validate_input(self, data):
+            pass
+
+        def validate_output(self, data, output):
+            if len(inspect.signature(func).parameters) == 1:
+                func(output)
+            else:
+                func(data, output)
+
+    return LambdaEnsurer()
 
 
 class _ensure_base:
@@ -207,6 +220,13 @@ class _ensure_both(Generic[_T, _S], _ensure_base):
         outcome: Sequence[Callable[[_S], Any]],
         changes: Sequence[Callable[[_T, _S], Any]],
     ):
+        if not isinstance(incoming, list):
+            raise TypeError("incoming must be a list")
+        if not isinstance(outcome, list):
+            raise TypeError("outcome must be a list")
+        if not isinstance(changes, list):
+            raise TypeError("changes must be a list")
+
         self.input_ensurers_instances = [
             input_ensurer(ensurer) for ensurer in incoming
         ]
@@ -314,14 +334,14 @@ def ensure(*args, **kwargs):
     Args:
         incoming (Sequence[Callable[[_T], Any]]): sequence of validators that will be
             applied to the incoming data. The type :code:`_T` refers to the incoming type.
-            Defaut value: :code:`[]`.
+            Default value: :code:`[]`.
         outcome (Sequence[Callable[[_S], Any]]): sequence of validators that will be
             applied to the outcome data. The type :code:`_S` refers to the outcome type.
-            Defaut value: :code:`[]`.
+            Default value: :code:`[]`.
         changes (Sequence[Callable[[_T, _S], Any]]): sequence of validators that will be
             applied to both incoming and outcome data. The type :code:`_T` refers to the
             incoming type, and type :code:`_S` refers to the outcome type.
-            Defaut value: :code:`[]`.
+            Default value: :code:`[]`.
     """
     incoming = kwargs.get("incoming", [])
     outcome = kwargs.get("outcome", [])
