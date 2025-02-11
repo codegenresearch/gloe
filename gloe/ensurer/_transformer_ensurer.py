@@ -35,7 +35,7 @@ class TransformerEnsurer(Generic[_T, _S], ABC):
 def input_ensurer(func: Callable[[_T], Any]) -> TransformerEnsurer[_T, Any]:
     class LambdaEnsurer(TransformerEnsurer[_T, Any]):
         __doc__ = func.__doc__
-        __annotations__ = func.__annotations__
+        __annotations__ = cast(FunctionType, func).__annotations__
 
         def validate_input(self, data: _T):
             func(data)
@@ -59,7 +59,7 @@ def output_ensurer(func: Callable[[_S], Any]) -> TransformerEnsurer[Any, _S]:
 def output_ensurer(func: Callable):
     class LambdaEnsurer(TransformerEnsurer):
         __doc__ = func.__doc__
-        __annotations__ = func.__annotations__
+        __annotations__ = cast(FunctionType, func).__annotations__
 
         def validate_input(self, data):
             pass
@@ -129,6 +129,8 @@ class _ensure_base:
 
 class _ensure_incoming(Generic[_T], _ensure_base):
     def __init__(self, incoming: Sequence[Callable[[_T], Any]]):
+        if not isinstance(incoming, list):
+            raise TypeError("incoming must be a list")
         self.input_ensurers_instances = [input_ensurer(ensurer) for ensurer in incoming]
 
     def _generate_new_transformer(self, transformer: Transformer) -> Transformer:
@@ -157,6 +159,8 @@ class _ensure_incoming(Generic[_T], _ensure_base):
 
 class _ensure_outcome(Generic[_S], _ensure_base):
     def __init__(self, outcome: Sequence[Callable[[_S], Any]]):
+        if not isinstance(outcome, list):
+            raise TypeError("outcome must be a list")
         self.output_ensurers_instances = [output_ensurer(ensurer) for ensurer in outcome]
 
     def _generate_new_transformer(self, transformer: Transformer) -> Transformer:
@@ -186,6 +190,8 @@ class _ensure_outcome(Generic[_S], _ensure_base):
 
 class _ensure_changes(Generic[_T, _S], _ensure_base):
     def __init__(self, changes: Sequence[Callable[[_T, _S], Any]]):
+        if not isinstance(changes, list):
+            raise TypeError("changes must be a list")
         self.changes_ensurers_instances = [output_ensurer(ensurer) for ensurer in changes]
 
     def _generate_new_transformer(self, transformer: Transformer) -> Transformer:
