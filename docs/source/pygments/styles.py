@@ -12,6 +12,7 @@ from pygments.token import (
     Whitespace,
 )
 
+
 class GloeDarkStyle(Style):
     name = "gloe-dark"
     background_color = "#202020"
@@ -53,6 +54,7 @@ class GloeDarkStyle(Style):
         Generic.Traceback: "#ff3a3a",
         Error: "bg:#e3d2d2 #a61717",
     }
+
 
 class GloeLightStyle(Style):
     name = "gloe-light"
