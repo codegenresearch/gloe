@@ -10,13 +10,13 @@ _Out = TypeVar("_Out")
 
 @transformer
 def forget(data: Any) -> None:
-    """Transform any input data to `None`."""
+    """Transform any input data to `None`"""
     return None
 
 
 @transformer
 def debug(incoming: _In) -> _In:
-    """Insert a breakpoint for debugging and return the incoming data."""
+    """Insert a breakpoint for debugging and return the incoming data"""
     breakpoint()
     return incoming
 
@@ -33,7 +33,7 @@ class forward(Generic[_In], Transformer[_In, _In]):
 def forward_incoming(
     inner_transformer: Transformer[_In, _Out]
 ) -> Transformer[_In, Tuple[_Out, _In]]:
-    """Create a transformer that applies an inner transformer and returns a tuple of the result and the original input."""
+    """Create a transformer that applies an inner transformer and returns a tuple of the result and the original input"""
     return forward[_In]() >> (inner_transformer, forward())
 
 
