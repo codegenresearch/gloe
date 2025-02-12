@@ -1,13 +1,12 @@
-from typing import TypeVar
-
+from typing import TypeVar, Union
 from typing_extensions import assert_type
 
 from gloe import (
     Transformer,
     async_transformer,
     AsyncTransformer,
+    bridge,
 )
-from gloe.experimental import bridge
 from gloe.utils import forward
 from tests.lib.transformers import (
     square,
@@ -22,39 +21,33 @@ from tests.type_utils.mypy_test_suite import MypyTestSuite
 In = TypeVar("In")
 Out = TypeVar("Out")
 
+NUM_BRIDGE = bridge[float]("num")
+
 
 class TestBasicTransformerTypes(MypyTestSuite):
 
     def test_transformer_simple_typing(self):
-        """
-        Test the most simple transformer typing
-        """
+        """\n        Test the most simple transformer typing\n        """
 
         graph = square
         assert_type(graph, Transformer[float, float])
 
     def test_simple_flow_typing(self):
-        """
-        Test the most simple transformer typing
-        """
+        """\n        Test the most simple transformer typing\n        """
 
         graph = square >> square_root
 
         assert_type(graph, Transformer[float, float])
 
     def test_flow_with_mixed_types(self):
-        """
-        Test the most simple transformer typing
-        """
+        """\n        Test the most simple transformer typing\n        """
 
         graph = square >> square_root >> to_string
 
         assert_type(graph, Transformer[float, str])
 
     def test_divergent_flow_types(self):
-        """
-        Test the most simple transformer typing
-        """
+        """\n        Test the most simple transformer typing\n        """
 
         graph2 = square >> square_root >> (to_string, square)
         assert_type(graph2, Transformer[float, tuple[str, float]])
@@ -89,9 +82,7 @@ class TestBasicTransformerTypes(MypyTestSuite):
         )
 
     def test_bridge(self):
-        num_bridge = bridge[float]("num")
-
-        graph = plus1 >> num_bridge.pick() >> minus1 >> num_bridge.drop()
+        graph = plus1 >> NUM_BRIDGE.pick() >> minus1 >> NUM_BRIDGE.drop()
 
         assert_type(graph, Transformer[float, tuple[float, float]])
 
