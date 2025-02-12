@@ -1,7 +1,6 @@
 import asyncio
 import unittest
 from typing import TypeVar, Any, cast
-
 from gloe import (
     async_transformer,
     ensure,
@@ -11,10 +10,13 @@ from gloe import (
     TransformerException,
 )
 from gloe.async_transformer import _execute_async_flow
+
 from gloe.functional import partial_async_transformer
 from gloe.utils import forward
-from tests.lib.exceptions import LnOfNegativeNumber
-from tests.lib.transformers import async_plus1, async_natural_logarithm
+
+from tests.lib.ensurers import is_odd
+from tests.lib.exceptions import LnOfNegativeNumber, NumbersEqual, NumberIsEven
+from tests.lib.transformers import async_plus1, async_natural_logarithm, minus1
 
 _In = TypeVar("_In")
 
@@ -177,9 +179,7 @@ class TestAsyncTransformer(unittest.IsolatedAsyncioTestCase):
         )
 
     async def test_exhausting_large_flow(self):
-        """
-        Test the instantiation of large graph
-        """
+        """\n        Test the instantiation of large graph\n        """
         graph = async_plus1
 
         max_iters = 1500
@@ -190,9 +190,7 @@ class TestAsyncTransformer(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(result, max_iters + 1)
 
     async def test_async_transformer_error_handling(self):
-        """
-        Test if a raised error stores the correct TransformerException as its cause
-        """
+        """\n        Test if a raised error stores the correct TransformerException as its cause\n        """
 
         async_graph = async_plus1 >> async_natural_logarithm
 
