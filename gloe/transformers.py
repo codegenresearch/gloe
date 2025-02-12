@@ -78,20 +78,7 @@ AsyncNext7 = Union[
 
 
 class Transformer(BaseTransformer[I, O, "Transformer"], ABC):
-    """
-    A Transformer is the generic block with the responsibility to take an input of type
-    `T` and transform it to an output of type `S`.
-
-    See Also:
-        Read more about this feature in the page :ref:`creating-a-transformer`.
-
-    Example:
-        Typical usage example::
-
-            class Stringifier(Transformer[dict, str]):
-                ...
-
-    """
+    """\n    A Transformer is the generic block with the responsibility to take an input of type\n    `T` and transform it to an output of type `S`.\n\n    See Also:\n        Read more about this feature in the page :ref:`creating-a-transformer`.\n\n    Example:\n        Typical usage example::\n\n            class Stringifier(Transformer[dict, str]):\n                ...\n\n    """
 
     def __init__(self):
         super().__init__()
@@ -151,7 +138,7 @@ class Transformer(BaseTransformer[I, O, "Transformer"], ABC):
         if type(transformed) is not None:
             return cast(O, transformed)
 
-        raise NotImplementedError  # pragma: no cover
+        raise NotImplementedError
 
     @overload
     def __rshift__(
