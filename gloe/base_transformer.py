@@ -83,15 +83,7 @@ class BaseTransformer(Generic[_In, _Out, _Self]):
 
     @property
     def label(self) -> str:
-        """
-        Label used in visualization.
-
-        When the transformer is created by the `@transformer` decorator, it is the
-        name of the function.
-
-        When creating a transformer by extending the `Transformer` class, it is the name of
-        the class.
-        """
+        """\n        Label used in visualization.\n\n        When the transformer is created by the `@transformer` decorator, it is the\n        name of the function.\n\n        When creating a transformer by extending the `Transformer` class, it is the name of\n        the class.\n        """
         return self._label
 
     @property
@@ -104,10 +96,7 @@ class BaseTransformer(Generic[_In, _Out, _Self]):
 
     @property
     def previous(self) -> PreviousTransformer["BaseTransformer"]:
-        """
-        Previous transformers. It can be None, a single transformer, or a tuple of many
-        transformers.
-        """
+        """\n        Previous transformers. It can be None, a single transformer, or a tuple of many\n        transformers.\n        """
         return self._previous
 
     @property
@@ -384,7 +373,8 @@ class BaseTransformer(Generic[_In, _Out, _Self]):
         self._dag(net)
         return net
 
-    def export(self, path: str, with_edge_labels: bool = True):  # pragma: no cover
+    # pragma: not covered
+    def export(self, path: str, with_edge_labels: bool = True):
         net = self.graph()
         boxed_nodes = [
             node
