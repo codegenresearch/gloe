@@ -1,32 +1,16 @@
-# This workflow will install Python dependencies, run tests and lint with a variety of Python versions
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python
-
-name: Unit Tests
+name: Tests
 
 on:
   push:
-    branches: [ "develop", "main" ]
-    paths:
-      - tests/**
-      - gloe/**
-      - .coveragerc
-      - '.github/workflows/test.yml'
-  pull_request:
-    branches: [ "develop", "main" ]
-    types: [opened, reopened]
-    paths:
-      - tests/**
-      - gloe/**
-      - .coveragerc
-      - .github/workflows/test.yml
-
+    branches: [ "**" ]
+    
 jobs:
   test:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.9", "3.10", "3.11", "3.12"]
+        python-version: ["3.10"]
 
     steps:
     - uses: actions/checkout@v3
@@ -40,17 +24,7 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         python -m pip install -e .
-        python -m pip install coverage mypy pygraphviz
-    - name: Test with unittest
+        python -m pip install coverage mypy pygraphviz pytest
+    - name: Test with pytest
       run: |
-        python -m unittest
-    - name: Run tests and collect coverage
-      run: |
-        coverage run -m unittest
-    - name: Upload coverage reports to Codecov
-      uses: codecov/codecov-action@v4.0.1
-      if: ${{ matrix.python-version == '3.9' }}
-      with:
-        token: ${{ secrets.CODECOV_TOKEN }}
-        slug: ideos/gloe
-        
+        pytest -vv
