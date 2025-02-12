@@ -5,9 +5,6 @@ from gloe import partial_async_transformer
 from gloe.utils import forward
 
 
-_DATA = {"foo": "bar"}
-
-
 class TestPartialAsyncTransformer(unittest.TestCase):
 
     async def test_partial_async_transformer(self):
