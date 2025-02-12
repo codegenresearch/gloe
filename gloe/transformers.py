@@ -9,10 +9,11 @@ from typing import (
     Any,
     TypeAlias,
     Union,
+    Callable,
 )
 
 from gloe.base_transformer import BaseTransformer, TransformerException
-from gloe.async_transformer import AsyncTransformer
+from gloe.async_transformer import AsyncTransformer, is_async_transformer, _compose_nodes
 
 __all__ = ["Transformer"]
 
@@ -25,7 +26,6 @@ O4 = TypeVar("O4")
 O5 = TypeVar("O5")
 O6 = TypeVar("O6")
 O7 = TypeVar("O7")
-
 
 Tr: TypeAlias = "Transformer"
 AT: TypeAlias = AsyncTransformer
@@ -78,20 +78,7 @@ AsyncNext7 = Union[
 
 
 class Transformer(BaseTransformer[I, O, "Transformer"], ABC):
-    """
-    A Transformer is the generic block with the responsibility to take an input of type
-    `T` and transform it to an output of type `S`.
-
-    See Also:
-        Read more about this feature in the page :ref:`creating-a-transformer`.
-
-    Example:
-        Typical usage example::
-
-            class Stringifier(Transformer[dict, str]):
-                ...
-
-    """
+    """\n    A Transformer is the generic block with the responsibility to take an input of type\n    `T` and transform it to an output of type `S`.\n\n    See Also:\n        Read more about this feature in the page :ref:`creating-a-transformer`.\n\n    Example:\n        Typical usage example::\n\n            class Stringifier(Transformer[dict, str]):\n                ...\n\n    """
 
     def __init__(self):
         super().__init__()
@@ -100,6 +87,8 @@ class Transformer(BaseTransformer[I, O, "Transformer"], ABC):
     @abstractmethod
     def transform(self, data: I) -> O:
         """Main method to be implemented and responsible to perform the transformer logic"""
+        if not isinstance(data, self.input_type):
+            raise ValueError(f"Expected input of type {self.input_type}, got {type(data)}")
 
     def signature(self) -> Signature:
         return self._signature(Transformer)
@@ -108,50 +97,38 @@ class Transformer(BaseTransformer[I, O, "Transformer"], ABC):
         return f"{self.input_annotation} -> ({type(self).__name__}) -> {self.output_annotation}"
 
     def __call__(self, data: I) -> O:
-        transform_exception = None
+        if not isinstance(data, self.input_type):
+            raise ValueError(f"Expected input of type {self.input_type}, got {type(data)}")
 
-        transformed: O | None = None
         try:
             transformed = self.transform(data)
-        except Exception as exception:
-            if type(exception.__cause__) == TransformerException:
-                transform_exception = exception.__cause__
-            else:
-                tb = traceback.extract_tb(exception.__traceback__)
-
-                # TODO: Make this filter condition stronger
-                transformer_frames = [
-                    frame
-                    for frame in tb
-                    if frame.name == self.__class__.__name__ or frame.name == "transform"
-                ]
-
-                if len(transformer_frames) == 1:
-                    transformer_frame = transformer_frames[0]
-                    exception_message = (
-                        f"\n  "
-                        f'File "{transformer_frame.filename}", line {transformer_frame.lineno}, '
-                        f'in transformer "{self.__class__.__name__}"\n  '
-                        f"  >> {transformer_frame.line}"
-                    )
-                else:
-                    exception_message = (
-                        f'An error occurred in transformer "{self.__class__.__name__}"'
-                    )
-
-                transform_exception = TransformerException(
-                    internal_exception=exception,
-                    raiser_transformer=self,
-                    message=exception_message,
-                )
-
-        if transform_exception is not None:
-            raise transform_exception.internal_exception
-
-        if type(transformed) is not None:
+            if not isinstance(transformed, self.output_type):
+                raise ValueError(f"Expected output of type {self.output_type}, got {type(transformed)}")
             return cast(O, transformed)
+        except TransformerException as e:
+            raise e.internal_exception from e
+        except Exception as e:
+            tb = traceback.extract_tb(e.__traceback__)
+            transformer_frames = [
+                frame for frame in tb if frame.name == self.__class__.__name__ or frame.name == "transform"
+            ]
 
-        raise NotImplementedError  # pragma: no cover
+            if len(transformer_frames) == 1:
+                frame = transformer_frames[0]
+                message = (
+                    f"\n  "
+                    f'File "{frame.filename}", line {frame.lineno}, '
+                    f'in transformer "{self.__class__.__name__}"\n  '
+                    f"  >> {frame.line}"
+                )
+            else:
+                message = f'An error occurred in transformer "{self.__class__.__name__}"'
+
+            raise TransformerException(
+                internal_exception=e,
+                raiser_transformer=self,
+                message=message,
+            ) from e
 
     @overload
     def __rshift__(
@@ -256,4 +233,11 @@ class Transformer(BaseTransformer[I, O, "Transformer"], ABC):
         pass
 
     def __rshift__(self, next_node):
-        pass
+        if isinstance(next_node, tuple):
+            if not all(isinstance(n, BaseTransformer) for n in next_node):
+                raise ValueError("All elements in the tuple must be instances of BaseTransformer.")
+            return _compose_nodes(self, next_node)
+        elif isinstance(next_node, BaseTransformer):
+            return _compose_nodes(self, next_node)
+        else:
+            raise TypeError(f"Unsupported type for right shift operation: {type(next_node)}")
