@@ -22,6 +22,16 @@ class TransformerEnsurer(Generic[_T, _S], ABC):
     def validate_output(self, data: _T, output: _S):
         """Perform a validation on outcome data after execute the transformer code"""
 
+    def __call__(self, transformer: Transformer[_T, _S]) -> Transformer[_T, _S]:
+        def transform(this: Transformer, data: _T) -> _S:
+            self.validate_input(data)
+            output = transformer.transform(data)
+            self.validate_output(data, output)
+            return output
+
+        transformer_cp = transformer.copy(transform)
+        return transformer_cp
+
 
 def input_ensurer(func: Callable[[_T], Any]) -> TransformerEnsurer[_T, Any]:
     class LambdaEnsurer(TransformerEnsurer[_T, _S]):
@@ -299,37 +309,7 @@ def ensure(
 
 
 def ensure(*args, **kwargs):
-    """
-    This decorator is used in transformers to ensure some validation based on its incoming
-    data, outcome data, or both.
-
-    These validations are performed by validators. Validators are simple callable
-    functions that validate certain aspects of the input, output, or the differences
-    between them. If the validation fails, it must raise an exception.
-
-    The decorator :code:`@ensure` returns some intermediate classes to assist with the
-    internal logic of Gloe. However, the result of applying it to a transformer is just
-    a new transformer with the exact same attributes, but it includes an additional
-    validation layer.
-
-    The motivation of the many overloads is just to allow the user to define different types
-    of validators interchangeably.
-
-    See also:
-        For more detailed information about this feature, refer to the :ref:`ensurers` page.
-
-    Args:
-        incoming (Sequence[Callable[[_T], Any]]): sequence of validators that will be
-            applied to the incoming data. The type :code:`_T` refers to the incoming type.
-            Defaut value: :code:`[]`.
-        outcome (Sequence[Callable[[_S], Any]]): sequence of validators that will be
-            applied to the outcome data. The type :code:`_S` refers to the outcome type.
-            Defaut value: :code:`[]`.
-        changes (Sequence[Callable[[_T, _S], Any]]): sequence of validators that will be
-            applied to both incoming and outcome data. The type :code:`_T` refers to the
-            incoming type, and type :code:`_S` refers to the outcome type.
-            Defaut value: :code:`[]`.
-    """
+    """\n    This decorator is used in transformers to ensure some validation based on its incoming\n    data, outcome data, or both.\n\n    These validations are performed by validators. Validators are simple callable\n    functions that validate certain aspects of the input, output, or the differences\n    between them. If the validation fails, it must raise an exception.\n\n    The decorator :code:`@ensure` returns some intermediate classes to assist with the\n    internal logic of Gloe. However, the result of applying it to a transformer is just\n    a new transformer with the exact same attributes, but it includes an additional\n    validation layer.\n\n    The motivation of the many overloads is just to allow the user to define different types\n    of validators interchangeably.\n\n    See also:\n        For more detailed information about this feature, refer to the :ref:`ensurers` page.\n\n    Args:\n        incoming (Sequence[Callable[[_T], Any]]): sequence of validators that will be\n            applied to the incoming data. The type :code:`_T` refers to the incoming type.\n            Defaut value: :code:`[]`.\n        outcome (Sequence[Callable[[_S], Any]]): sequence of validators that will be\n            applied to the outcome data. The type :code:`_S` refers to the outcome type.\n            Defaut value: :code:`[]`.\n        changes (Sequence[Callable[[_T, _S], Any]]): sequence of validators that will be\n            applied to both incoming and outcome data. The type :code:`_T` refers to the\n            incoming type, and type :code:`_S` refers to the outcome type.\n            Defaut value: :code:`[]`.\n    """
     if len(kwargs.keys()) == 1 and "incoming" in kwargs:
         return _ensure_incoming(kwargs["incoming"])
 
