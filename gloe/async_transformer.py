@@ -38,15 +38,7 @@ class AsyncTransformer(BaseTransformer[_In, _Out, "AsyncTransformer"], ABC):
 
     @abstractmethod
     async def transform_async(self, data: _In) -> _Out:
-        """
-        Method to perform the transformation asynchronously.
-
-        Args:
-            data: the incoming data passed to the transformer during the pipeline execution.
-
-        Return:
-            The outcome data, it means, the resulf of the transformation.
-        """
+        """\n        Method to perform the transformation asynchronously.\n\n        Args:\n            data: the incoming data passed to the transformer during the pipeline execution.\n\n        Return:\n            The outcome data, it means, the resulf of the transformation.\n        """
         pass
 
     def signature(self) -> Signature:
@@ -99,7 +91,7 @@ class AsyncTransformer(BaseTransformer[_In, _Out, "AsyncTransformer"], ABC):
         if type(transformed) is not None:
             return cast(_Out, transformed)
 
-        raise NotImplementedError  # pragma: no cover
+        raise NotImplementedError
 
     def copy(
         self,
@@ -214,4 +206,4 @@ class AsyncTransformer(BaseTransformer[_In, _Out, "AsyncTransformer"], ABC):
         pass
 
     def __rshift__(self, next_node):
-        pass  # pragma: no cover
+        pass
