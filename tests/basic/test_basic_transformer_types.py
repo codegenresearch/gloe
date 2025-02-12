@@ -1,4 +1,5 @@
 from typing import TypeVar
+from typing import TypeVar
 
 from typing_extensions import assert_type
 
@@ -26,35 +27,27 @@ Out = TypeVar("Out")
 class TestBasicTransformerTypes(MypyTestSuite):
 
     def test_transformer_simple_typing(self):
-        """
-        Test the most simple transformer typing
-        """
+        """\n        Test the most simple transformer typing\n        """
 
         graph = square
         assert_type(graph, Transformer[float, float])
 
     def test_simple_flow_typing(self):
-        """
-        Test the most simple transformer typing
-        """
+        """\n        Test the most simple transformer typing\n        """
 
         graph = square >> square_root
 
         assert_type(graph, Transformer[float, float])
 
     def test_flow_with_mixed_types(self):
-        """
-        Test the most simple transformer typing
-        """
+        """\n        Test the most simple transformer typing\n        """
 
         graph = square >> square_root >> to_string
 
         assert_type(graph, Transformer[float, str])
 
     def test_divergent_flow_types(self):
-        """
-        Test the most simple transformer typing
-        """
+        """\n        Test the most simple transformer typing\n        """
 
         graph2 = square >> square_root >> (to_string, square)
         assert_type(graph2, Transformer[float, tuple[str, float]])
