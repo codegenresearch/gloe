@@ -22,7 +22,7 @@ extensions = [
     "sphinx_toolbox.more_autodoc.variables",
     "sphinx.ext.autosectionlabel",
     "sphinx.ext.autodoc",
-    # "sphinx.ext.autosummary",
+    "sphinx.ext.autosummary",
     "sphinx.ext.viewcode",
     "sphinx.ext.napoleon",
     "sphinx.ext.intersphinx",
@@ -35,7 +35,7 @@ overloads_location = "bottom"
 napoleon_google_docstring = True
 autosectionlabel_prefix_document = True
 napoleon_use_rtype = False
-# intersphinx_mapping = {"httpx": ("https://www.python-httpx.org/", None)}
+intersphinx_mapping = {"httpx": ("https://www.python-httpx.org/", None)}
 ogp_site_url = "https://gloe.ideos.com.br/"
 ogp_image = "https://gloe.ideos.com.br/_static/assets/gloe-logo.png"
 
@@ -52,49 +52,5 @@ html_title = "Gloe"
 # html_logo = "assets/gloe-logo-small.png"
 html_theme = "furo"
 html_last_updated_fmt = ""
-# html_use_index = False  # Don't create index
-# html_domain_indices = False  # Don't need module indices
-# html_copy_source = False  # Don't need sources
-html_sidebars: dict[str, list[str]] = {
-    "Home": ["/"],
-}
-# autodoc_default_options = {"ignore-module-all": True}
-
-html_static_path = ["_static"]
-html_css_files = ["theme_customs.css"]
-html_favicon = "_static/assets/favicon.ico"
-html_theme_options = {
-    # "main_nav_links": {"Docs": "/index", "About": "/about"},
-    "light_logo": "assets/gloe-logo-small.png",
-    "dark_logo": "assets/gloe-logo-small.png",
-    "dark_css_variables": {
-        "color-brand-primary": "#00e6bf",
-        "color-brand-content": "#00e6bf",
-        "font-stack": "Roboto, sans-serif",
-        "font-stack--monospace": "Courier, monospace",
-        "font-size--normal": "Courier, monospace",
-    },
-    "light_css_variables": {
-        "color-brand-primary": "#00afac",
-        "color-brand-content": "#00afac",
-        "font-stack": "Roboto, sans-serif",
-        "font-stack--monospace": "Courier, monospace",
-        "font-size--normal": "Courier, monospace",
-    },
-    "footer_icons": [
-        {
-            "name": "GitHub",
-            "url": "https://github.com/ideos/gloe",
-            "html": """
-                <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 16 16">
-                    <path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z"></path>
-                </svg>
-            """,
-            "class": "",
-        },
-    ],
-}
-
-# pygments_style = "styles.GloeStyle"
-pygments_dark_style = "styles.GloeDarkStyle"
-pygments_light_style = "styles.GloeLightStyle"
+# html_use_index = False  # Don't create index\n# html_domain_indices = False  # Don't need module indices
+# html_copy_source = False  # Don't need sources\nhtml_sidebars: dict[str, list[str]] = {\n    "Home": ["/"],\n}\n# autodoc_default_options = {"ignore-module-all": True}\n\nhtml_static_path = ["_static"]\nhtml_css_files = ["theme_customs.css"]\nhtml_favicon = "_static/assets/favicon.ico"\nhtml_theme_options = {\n    # "main_nav_links": {"Docs": "/index", "About": "/about"},\n    "light_logo": "assets/gloe-logo-small.png",\n    "dark_logo": "assets/gloe-logo-small.png",\n    "dark_css_variables": {\n        "color-brand-primary": "#00e6bf",\n        "color-brand-content": "#00e6bf",\n        "font-stack": "Roboto, sans-serif",\n        "font-stack--monospace": "Courier, monospace",\n        "font-size--normal": "Courier, monospace",\n    },\n    "footer_icons": [\n        {\n            "name": "GitHub",\n            "url": "https://github.com/ideos/gloe",\n            "html": """\n                <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 16 16">\n                    <path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z"></path>\n                </svg>\n            """,\n            "class": "",\n        },\n    ],\n}\n\npygments_light_style = "styles.GloeLightStyle"\npygments_dark_style = "styles.GloeDarkStyle"
