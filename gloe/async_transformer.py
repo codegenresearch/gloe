@@ -99,7 +99,7 @@ class AsyncTransformer(BaseTransformer[_In, _Out, "AsyncTransformer"], ABC):
         if type(transformed) is not None:
             return cast(_Out, transformed)
 
-        raise NotImplementedError  # pragma: no cover
+        raise NotImplementedError
 
     def copy(
         self,
@@ -214,4 +214,4 @@ class AsyncTransformer(BaseTransformer[_In, _Out, "AsyncTransformer"], ABC):
         pass
 
     def __rshift__(self, next_node):
-        pass  # pragma: no cover
+        pass
