@@ -1,13 +1,12 @@
 import asyncio
 import types
 from inspect import Signature
-from types import GenericAlias
 from typing import TypeVar, Any, cast
 
 from gloe.async_transformer import AsyncTransformer
 from gloe.base_transformer import BaseTransformer
 from gloe.transformers import Transformer
-from gloe._utils import _match_types, _specify_types
+from gloe._utils import _match_types, _specify_types, awaitify
 from gloe.exceptions import UnsupportedTransformerArgException
 
 _In = TypeVar("_In")
@@ -15,23 +14,21 @@ _Out = TypeVar("_Out")
 _NextOut = TypeVar("_NextOut")
 
 
-def is_transformer(node):
-    if type(node) == list or type(node) == tuple:
-        return all(is_transformer(n) for n in node)
+def is_transformer(node: Any) -> bool:
     return isinstance(node, Transformer)
 
 
-def is_async_transformer(node):
+def is_async_transformer(node: Any) -> bool:
     return isinstance(node, AsyncTransformer)
 
 
-def has_any_async_transformer(node: list):
+def has_any_async_transformer(node: list) -> bool:
     return any(is_async_transformer(n) for n in node)
 
 
 def _resolve_new_merge_transformers(
     new_transformer: BaseTransformer, transformer2: BaseTransformer
-):
+) -> BaseTransformer:
     new_transformer.__class__.__name__ = transformer2.__class__.__name__
     new_transformer._label = transformer2.label
     new_transformer._children = transformer2.children
@@ -55,11 +52,11 @@ def _resolve_serial_connection_signatures(
     return new_signature
 
 
-def _nerge_serial(transformer1, _transformer2):
+def _nerge_serial(transformer1: BaseTransformer, transformer2: BaseTransformer) -> BaseTransformer:
     if transformer1.previous is None:
         transformer1 = transformer1.copy(regenerate_instance_id=True)
 
-    transformer2 = _transformer2.copy(regenerate_instance_id=True)
+    transformer2 = transformer2.copy(regenerate_instance_id=True)
     transformer2._set_previous(transformer1)
 
     signature1: Signature = transformer1.signature()
@@ -94,18 +91,16 @@ def _nerge_serial(transformer1, _transformer2):
             return len(transformer1) + len(transformer2)
 
     new_transformer: BaseTransformer | None = None
-    if is_transformer(transformer1) and is_transformer(_transformer2):
+    if is_transformer(transformer1) and is_transformer(transformer2):
 
         class NewTransformer1(BaseNewTransformer, Transformer[_In, _NextOut]):
             def transform(self, data: _In) -> _NextOut:
-                transformer2_call = transformer2.__call__
-                transformer1_call = transformer1.__call__
-                transformed = transformer2_call(transformer1_call(data))
+                transformed = transformer2(transformer1(data))
                 return transformed
 
         new_transformer = NewTransformer1()
 
-    elif is_async_transformer(transformer1) and is_transformer(_transformer2):
+    elif is_async_transformer(transformer1) and is_transformer(transformer2):
 
         class NewTransformer2(BaseNewTransformer, AsyncTransformer[_In, _NextOut]):
             async def transform_async(self, data: _In) -> _NextOut:
@@ -125,7 +120,7 @@ def _nerge_serial(transformer1, _transformer2):
 
         new_transformer = NewTransformer3()
 
-    elif is_transformer(transformer1) and is_async_transformer(_transformer2):
+    elif is_transformer(transformer1) and is_async_transformer(transformer2):
 
         class NewTransformer4(AsyncTransformer[_In, _NextOut]):
             async def transform_async(self, data: _In) -> _NextOut:
@@ -142,17 +137,15 @@ def _nerge_serial(transformer1, _transformer2):
 
 
 def _merge_diverging(
-    incident_transformer,
-    *receiving_transformers,
-):
+    incident_transformer: BaseTransformer,
+    *receiving_transformers: BaseTransformer,
+) -> BaseTransformer:
     if incident_transformer.previous is None:
         incident_transformer = incident_transformer.copy(regenerate_instance_id=True)
 
     receiving_transformers = tuple(
-        [
-            receiving_transformer.copy(regenerate_instance_id=True)
-            for receiving_transformer in receiving_transformers
-        ]
+        receiving_transformer.copy(regenerate_instance_id=True)
+        for receiving_transformer in receiving_transformers
     )
 
     for receiving_transformer in receiving_transformers:
@@ -176,14 +169,11 @@ def _merge_diverging(
         )
         receiving_signatures.append(new_signature)
 
-        def _signature(_) -> Signature:
-            return new_signature
-
         if receiving_transformer._previous == incident_transformer:
             setattr(
                 receiving_transformer,
                 "signature",
-                types.MethodType(_signature, receiving_transformer),
+                types.MethodType(lambda _, s=new_signature: s, receiving_transformer),
             )
 
     class BaseNewTransformer:
@@ -192,7 +182,7 @@ def _merge_diverging(
                 r.return_annotation for r in receiving_signatures
             ]
             new_signature = incident_signature.replace(
-                return_annotation=GenericAlias(tuple, tuple(receiving_signature_returns))
+                return_annotation=cast(Any, tuple[Any, ...])
             )
             return new_signature
 
@@ -201,7 +191,9 @@ def _merge_diverging(
             return sum(lengths) + len(incident_transformer)
 
     new_transformer = None
-    if is_transformer(incident_transformer) and is_transformer(receiving_transformers):
+    if is_transformer(incident_transformer) and all(
+        is_transformer(t) for t in receiving_transformers
+    ):
 
         def split_result(data: _In) -> tuple[Any, ...]:
             intermediate_result = incident_transformer(data)
@@ -258,17 +250,17 @@ def _merge_diverging(
 def _compose_nodes(
     current: BaseTransformer,
     next_node: tuple | BaseTransformer,
-):
+) -> BaseTransformer:
     if issubclass(type(current), BaseTransformer):
         if issubclass(type(next_node), BaseTransformer):
-            return _nerge_serial(current, next_node)  # type: ignore
-        elif type(next_node) == tuple:
+            return _nerge_serial(current, next_node)
+        elif isinstance(next_node, tuple):
             is_all_base_transformers = all(
                 issubclass(type(next_transformer), BaseTransformer)
                 for next_transformer in next_node
             )
             if is_all_base_transformers:
-                return _merge_diverging(current, *next_node)  # type: ignore
+                return _merge_diverging(current, *next_node)
 
             unsupported_elem = [
                 elem for elem in next_node if not isinstance(elem, BaseTransformer)
